@@ -77,4 +77,4 @@ log/
 files.txt
 *.bak
 *.backup
-*.old 
+*.old this-or-that-frame-backup.tar.gz
