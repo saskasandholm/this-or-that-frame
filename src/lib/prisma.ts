@@ -1,9 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 
-// Prevent multiple instances of Prisma Client in development
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+// Extend PrismaClient to include models that might not be automatically detected
+const extendedPrismaClient = new PrismaClient().$extends({
+  model: {
+    // Add any custom methods if needed
+  },
+});
 
-export const prisma = globalForPrisma.prisma || new PrismaClient();
+// Prevent multiple instances of Prisma Client in development
+const globalForPrisma = global as unknown as { prisma: typeof extendedPrismaClient };
+
+export const prisma = globalForPrisma.prisma || extendedPrismaClient;
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 

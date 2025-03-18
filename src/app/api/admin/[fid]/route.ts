@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isAdmin } from '@/lib/utils';
+import { Prisma } from '@prisma/client';
 
 /**
  * Update admin permissions
  */
-export async function PATCH(request: NextRequest, { params }: { params: { fid: string } }) {
+export async function PATCH(request: NextRequest, context: { params: { fid: string } }) {
   try {
     const body = await request.json();
     const { adminFid, permissions } = body;
-    const targetFid = parseInt(params.fid);
+    const targetFid = context.params.fid;
 
     // Validate required fields
     if (!adminFid || !permissions) {
@@ -35,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { fid: s
 
     // Check if target admin exists
     const targetAdmin = await prisma.admin.findUnique({
-      where: { fid: targetFid },
+      where: { fid: parseInt(targetFid) },
     });
 
     if (!targetAdmin) {
@@ -44,7 +45,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { fid: s
 
     // Update admin permissions
     const updatedAdmin = await prisma.admin.update({
-      where: { fid: targetFid },
+      where: { fid: parseInt(targetFid) },
       data: {
         permissions,
         updatedAt: new Date(),
@@ -64,20 +65,19 @@ export async function PATCH(request: NextRequest, { params }: { params: { fid: s
 /**
  * Remove an admin (requires full_admin permissions)
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest, context: { params: { fid: string } }) {
   try {
-    const url = new URL(request.url);
-    const fid = url.searchParams.get('fid');
+    const targetFid = context.params.fid;
     const body = await request.json();
-    const { targetFid } = body;
+    const { adminFid } = body;
 
     // Validate required fields
-    if (!fid || !targetFid) {
+    if (!adminFid) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Check if user is a full_admin
-    const adminStatus = await isAdmin(parseInt(fid), 'full_admin');
+    const adminStatus = await isAdmin(parseInt(adminFid), 'full_admin');
     if (!adminStatus) {
       return NextResponse.json(
         { error: 'Unauthorized. Full admin permissions required.' },
