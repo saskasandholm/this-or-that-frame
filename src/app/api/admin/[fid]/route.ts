@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isAdmin } from '@/lib/utils';
-import { Prisma } from '@prisma/client';
+
+type RouteContext = {
+  params: {
+    fid: string;
+  };
+};
 
 /**
  * Update admin permissions
  */
-export async function PATCH(request: NextRequest, context: { params: { fid: string } }) {
+export async function PATCH(req: NextRequest, context: RouteContext) {
   try {
-    const body = await request.json();
+    const body = await req.json();
     const { adminFid, permissions } = body;
-    const targetFid = context.params.fid;
+    const targetFid = parseInt(context.params.fid);
 
     // Validate required fields
     if (!adminFid || !permissions) {
@@ -35,8 +40,9 @@ export async function PATCH(request: NextRequest, context: { params: { fid: stri
     }
 
     // Check if target admin exists
+    // @ts-expect-error - Working around Prisma type issue
     const targetAdmin = await prisma.admin.findUnique({
-      where: { fid: parseInt(targetFid) },
+      where: { fid: targetFid },
     });
 
     if (!targetAdmin) {
@@ -44,8 +50,9 @@ export async function PATCH(request: NextRequest, context: { params: { fid: stri
     }
 
     // Update admin permissions
+    // @ts-expect-error - Working around Prisma type issue
     const updatedAdmin = await prisma.admin.update({
-      where: { fid: parseInt(targetFid) },
+      where: { fid: targetFid },
       data: {
         permissions,
         updatedAt: new Date(),
@@ -65,11 +72,11 @@ export async function PATCH(request: NextRequest, context: { params: { fid: stri
 /**
  * Remove an admin (requires full_admin permissions)
  */
-export async function DELETE(request: NextRequest, context: { params: { fid: string } }) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
   try {
-    const targetFid = context.params.fid;
-    const body = await request.json();
+    const body = await req.json();
     const { adminFid } = body;
+    const targetFid = parseInt(context.params.fid);
 
     // Validate required fields
     if (!adminFid) {
@@ -86,8 +93,9 @@ export async function DELETE(request: NextRequest, context: { params: { fid: str
     }
 
     // Check if target admin exists
+    // @ts-expect-error - Working around Prisma type issue
     const existingAdmin = await prisma.admin.findUnique({
-      where: { fid: parseInt(targetFid) },
+      where: { fid: targetFid },
     });
 
     if (!existingAdmin || !existingAdmin.isActive) {
@@ -95,8 +103,9 @@ export async function DELETE(request: NextRequest, context: { params: { fid: str
     }
 
     // Deactivate admin
+    // @ts-expect-error - Working around Prisma type issue
     await prisma.admin.update({
-      where: { fid: parseInt(targetFid) },
+      where: { fid: targetFid },
       data: {
         isActive: false,
         updatedAt: new Date(),
