@@ -17,7 +17,7 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "seed": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
-    "postinstall": "prisma generate",
+    "postinstall": "npm install --legacy-peer-deps && prisma generate",
     "verify-env": "node scripts/verify-env.js",
     "clean": "rm -rf .next",
     "prepare": "husky install"
