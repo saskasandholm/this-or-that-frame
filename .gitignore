@@ -1,0 +1,80 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+/playwright-report
+/playwright/.cache
+/test-results
+/e2e-results
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+/dist
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# local env files
+.env*.local
+.env
+.env.development
+.env.test
+.env.production
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDEs and editors
+/.idea
+/.vscode
+*.swp
+*.swo
+*~
+*.sublime-*
+.project
+.classpath
+.settings/
+.history
+
+# logs
+logs
+*.log
+log/
+
+# OS generated files
+.directory
+.fuse_hidden*
+.Trash-*
+.nfs*
+
+# Temporary files
+/tmp
+/temp
+*.tmp
+*.temp
+files.txt
+*.bak
+*.backup
+*.old 
