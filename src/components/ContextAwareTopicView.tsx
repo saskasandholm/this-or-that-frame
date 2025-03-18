@@ -419,6 +419,31 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
             <p className="text-lg">{results.totalVotes} total votes</p>
           </div>
         )}
+
+        {/* Friends context - using sample data for demo, in a real app this would come from backend */}
+        {(userVote === 'A' || userVote === 'B') && (
+          <FriendsVotedContext
+            friends={[
+              { fid: '1', username: 'alice', avatar: '/images/avatars/alice.jpg', choice: 'A' },
+              { fid: '2', username: 'bob', avatar: '/images/avatars/bob.jpg', choice: 'B' },
+              {
+                fid: '3',
+                username: 'charlie',
+                avatar: '/images/avatars/charlie.jpg',
+                choice: userVote as 'A' | 'B',
+              },
+            ]}
+            userChoice={userVote as 'A' | 'B'}
+            optionA={optionA}
+            optionB={optionB}
+            _topicTitle={topicTitle}
+            _topicId={topicId || ''}
+            _userVote={userVote as 'A' | 'B'}
+            _friendsAgreeing={2}
+            _friendsDisagreeing={1}
+            _totalFriendsVoted={3}
+          />
+        )}
       </div>
     </div>
   );
@@ -530,32 +555,13 @@ const StandardTopicView: React.FC<StandardTopicViewProps> = ({
             Total votes: {results.totalVotes}
           </div>
 
-          {/* Friends context - using sample data for demo, in a real app this would come from backend */}
-          {userVote && (
-            <FriendsVotedContext
-              friends={[
-                { fid: '1', username: 'alice', avatar: '/images/avatars/alice.jpg', choice: 'A' },
-                { fid: '2', username: 'bob', avatar: '/images/avatars/bob.jpg', choice: 'B' },
-                {
-                  fid: '3',
-                  username: 'charlie',
-                  avatar: '/images/avatars/charlie.jpg',
-                  choice: userVote,
-                },
-              ]}
-              userChoice={userVote}
-              optionA={optionA}
-              optionB={optionB}
-              topicTitle={topicTitle}
-            />
-          )}
-
           {/* Did You Know fact */}
           <DidYouKnow
-            topicId={topicId}
-            topicTitle={topicTitle}
-            userChoice={userVote === 'A' ? optionA : optionB}
-            percentageAgreed={userVote === 'A' ? results.percentA : results.percentB}
+            isRareOpinion={userVote === 'A' ? results.percentA < 30 : results.percentB < 30}
+            isHighlyContested={Math.abs(results.percentA - results.percentB) < 10}
+            _topicTitle={topicTitle}
+            _userChoice={userVote === 'A' ? 'A' : 'B'}
+            _onClose={() => {}}
           />
 
           <div className="mt-6 flex flex-col space-y-3">
