@@ -44,21 +44,8 @@ const nextConfig = {
   },
 };
 
-// For ES modules, we need to dynamically import Sentry
-// Since we can't use require() in ES modules
-let withSentryConfig;
+// A more sustainable approach for ES modules
+// If Sentry integration is needed in the future, the codebase should use a proper ESM approach
+// or convert this file to .cjs extension
 
-// Skip Sentry if the environment variable is set
-if (process.env.SKIP_SENTRY_SETUP) {
-  withSentryConfig = (config) => config;
-} else {
-  // Use dynamic import for Sentry (commented out for now)
-  // We'll bypass Sentry for now to get the build working
-  withSentryConfig = (config) => config;
-  
-  // The dynamic import approach doesn't work in the build context
-  // We'll need to convert this whole file to CommonJS later
-}
-
-// Temporarily skip Sentry to get the build working
 export default nextConfig;
