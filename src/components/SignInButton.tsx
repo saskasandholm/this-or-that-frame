@@ -56,58 +56,93 @@ export function SignInButton({ className }: { className?: string }) {
     );
   }
 
-  // Otherwise, show sign in button
+  // Otherwise, show our custom sign in button that wraps Farcaster's button
   return (
-    <FarcasterSignInButton
-      onSuccess={async response => {
-        console.log('Authentication successful!', response);
-        setIsSigningIn(true);
-
-        try {
-          // Extract the signature and message
-          const { signature, message } = response;
-
-          // Send to our server endpoint for verification
-          const serverResponse = await fetch('/api/auth/farcaster', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ signature, message }),
-          });
-
-          if (!serverResponse.ok) {
-            const errorData = await serverResponse.json();
-            throw new Error(errorData.error || 'Failed to authenticate on server');
-          }
-
-          // Successfully authenticated with the server
-          trackEvent('auth_success', {
-            method: 'farcaster',
-          });
-
-          // Reload the page to update the UI with the authenticated state
-          window.location.reload();
-        } catch (error) {
-          console.error('Server authentication error:', error);
-          trackError('Server authentication error', { error });
-          trackEvent('auth_server_error', {
-            method: 'farcaster',
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        } finally {
-          setIsSigningIn(false);
+    <div className={`farcaster-button-wrapper ${className}`}>
+      <style jsx global>{`
+        /* Override Farcaster button styles to match our UI */
+        .farcaster-button-wrapper button.fc-authkit-button {
+          background-color: rgb(139, 92, 246) !important; /* Match our purple button */
+          border-radius: 0.5rem !important;
+          border: none !important;
+          padding: 0.5rem 1rem !important;
+          transition: background-color 0.2s ease !important;
+          font-family: var(--font-sans) !important;
+          font-weight: 500 !important;
+          box-shadow: none !important;
+          height: 40px !important;
+          min-width: auto !important;
         }
-      }}
-      onError={error => {
-        console.error('Authentication error:', error);
-        setIsSigningIn(false);
-        trackError('Authentication error', { error: error ? error.message : 'Unknown error' });
-        trackEvent('auth_error', {
-          method: 'farcaster',
-          error: error ? error.message : 'Unknown error',
-        });
-      }}
-    />
+
+        .farcaster-button-wrapper button.fc-authkit-button:hover {
+          background-color: rgb(124, 58, 237) !important; /* Darker purple on hover */
+        }
+
+        .farcaster-button-wrapper button.fc-authkit-button > div {
+          height: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 0.5rem !important;
+        }
+
+        .farcaster-button-wrapper button.fc-authkit-button > div > div {
+          display: flex !important;
+          align-items: center !important;
+          gap: 0.5rem !important;
+        }
+      `}</style>
+      <FarcasterSignInButton
+        onSuccess={async response => {
+          console.log('Authentication successful!', response);
+          setIsSigningIn(true);
+
+          try {
+            // Extract the signature and message
+            const { signature, message } = response;
+
+            // Send to our server endpoint for verification
+            const serverResponse = await fetch('/api/auth/farcaster', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ signature, message }),
+            });
+
+            if (!serverResponse.ok) {
+              const errorData = await serverResponse.json();
+              throw new Error(errorData.error || 'Failed to authenticate on server');
+            }
+
+            // Successfully authenticated with the server
+            trackEvent('auth_success', {
+              method: 'farcaster',
+            });
+
+            // Reload the page to update the UI with the authenticated state
+            window.location.reload();
+          } catch (error) {
+            console.error('Server authentication error:', error);
+            trackError('Server authentication error', { error });
+            trackEvent('auth_server_error', {
+              method: 'farcaster',
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          } finally {
+            setIsSigningIn(false);
+          }
+        }}
+        onError={error => {
+          console.error('Authentication error:', error);
+          setIsSigningIn(false);
+          trackError('Authentication error', { error: error ? error.message : 'Unknown error' });
+          trackEvent('auth_error', {
+            method: 'farcaster',
+            error: error ? error.message : 'Unknown error',
+          });
+        }}
+      />
+    </div>
   );
 }
