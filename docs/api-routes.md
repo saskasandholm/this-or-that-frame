@@ -170,17 +170,212 @@ function handleInteraction(buttonIndex: number, fid: number) {
 
 ## Message Signature Verification
 
-For better security, you should verify the signature of incoming frame messages. Here's how to implement signature verification:
+For better security, you should verify the signature of incoming frame messages. Here's how to implement signature verification using the official Farcaster validation service:
 
 ```typescript
-import { FrameValidationServiceScoped } from '@farcaster/core';
+import { FrameValidationServiceScoped, FrameMessage } from '@farcaster/core';
 
 // Function to verify frame message
-async function verifyFrameMessage(message: FrameMessage): Promise<boolean> {
-  const validationService = new FrameValidationServiceScoped();
-  const result = await validationService.validateFrameMessage(message);
-  return result.isValid;
+async function verifyFrameMessage(message: FrameMessage): Promise<{
+  isValid: boolean;
+  message?: {
+    fid: number;
+    buttonIndex: number;
+    inputText?: string;
+    castId?: { fid: number; hash: string };
+  };
+  error?: string;
+}> {
+  try {
+    const validationService = new FrameValidationServiceScoped();
+    const result = await validationService.validateFrameMessage(message);
+
+    if (!result.isValid || !result.message) {
+      return {
+        isValid: false,
+        error: result.error || 'Invalid message signature',
+      };
+    }
+
+    // Extract validated data from the message
+    return {
+      isValid: true,
+      message: {
+        fid: result.message.data.fid,
+        buttonIndex: result.message.data.frameActionBody.buttonIndex,
+        inputText: result.message.data.frameActionBody.inputText,
+        castId: result.message.data.castId,
+      },
+    };
+  } catch (error) {
+    console.error('Error validating frame message:', error);
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : 'Unknown validation error',
+    };
+  }
 }
+
+// Usage in an API route
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { isValid, message, error } = await verifyFrameMessage(body);
+
+    if (!isValid) {
+      return NextResponse.json({ error }, { status: 400 });
+    }
+
+    // Continue processing with validated message data
+    // ...
+  } catch (error) {
+    // Handle errors
+  }
+}
+```
+
+## Authentication API Routes
+
+To support Farcaster authentication, you need to implement an authentication endpoint that verifies signatures from the Auth-kit. Here's how to implement the `/api/auth/farcaster` route:
+
+```typescript
+// src/app/api/auth/farcaster/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { verifySignInMessage } from '@farcaster/auth-kit/server';
+import { cookies } from 'next/headers';
+import { generateSessionToken, encryptSession } from '@/lib/auth';
+
+export async function POST(req: NextRequest) {
+  try {
+    // Parse the request body
+    const body = await req.json();
+    const { signature, message } = body;
+
+    // Verify the signature
+    const result = await verifySignInMessage({
+      message,
+      signature,
+      domain: process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost',
+    });
+
+    if (!result.success) {
+      console.error('Failed to verify Farcaster signature:', result.error);
+      return NextResponse.json({ error: 'Invalid signature or message' }, { status: 401 });
+    }
+
+    // Extract user information
+    const { fid, username, displayName, pfpUrl } = result.message;
+
+    // Create a session token
+    const sessionToken = generateSessionToken();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    // Store user info in session
+    const sessionData = {
+      userId: fid.toString(),
+      username,
+      displayName,
+      pfpUrl,
+      expiresAt: expiresAt.toISOString(),
+    };
+
+    // Encrypt the session
+    const encryptedSession = encryptSession(sessionData);
+
+    // Set a HTTP-only cookie with the session token
+    const cookieStore = cookies();
+    cookieStore.set({
+      name: 'auth_session',
+      value: encryptedSession,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      expires: expiresAt,
+      path: '/',
+    });
+
+    // Return success response
+    return NextResponse.json({ status: 'success' });
+  } catch (error) {
+    console.error('Error in Farcaster auth endpoint:', error);
+    return NextResponse.json({ error: 'Server error during authentication' }, { status: 500 });
+  }
+}
+```
+
+### Helper Functions for Authentication
+
+Create these helper functions in `src/lib/auth.ts`:
+
+```typescript
+import crypto from 'crypto';
+
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-fallback-encryption-key-min-32-chars';
+const IV_LENGTH = 16; // For AES, this is always 16
+
+// Generate a random session token
+export function generateSessionToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Encrypt session data
+export function encryptSession(data: any): string {
+  try {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+
+    const serialized = JSON.stringify(data);
+    let encrypted = cipher.update(serialized, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+
+    return `${iv.toString('hex')}:${encrypted}`;
+  } catch (error) {
+    console.error('Error encrypting session:', error);
+    throw new Error('Failed to encrypt session data');
+  }
+}
+
+// Decrypt session data
+export function decryptSession(encrypted: string): any {
+  try {
+    const parts = encrypted.split(':');
+    if (parts.length !== 2) {
+      throw new Error('Invalid encrypted format');
+    }
+
+    const iv = Buffer.from(parts[0], 'hex');
+    const encryptedText = parts[1];
+
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return JSON.parse(decrypted);
+  } catch (error) {
+    console.error('Error decrypting session:', error);
+    throw new Error('Failed to decrypt session data');
+  }
+}
+
+// Verify if a session is valid
+export function verifySession(sessionData: any): boolean {
+  if (!sessionData || !sessionData.expiresAt) {
+    return false;
+  }
+
+  const expiresAt = new Date(sessionData.expiresAt);
+  return expiresAt > new Date();
+}
+```
+
+### Environment Variables for Authentication
+
+Make sure to set these environment variables:
+
+```
+NEXT_PUBLIC_APP_DOMAIN=your-app-domain.com
+ENCRYPTION_KEY=your-encryption-key-min-32-chars
 ```
 
 ## Security Best Practices
