@@ -155,3 +155,123 @@ This document outlines the plan for updating and enhancing the project documenta
 - ✅ Updated VotingInterface to use OptimizedImage
 - ✅ Created VotingInterfaceWrapper to replace ContextAwareTopicView while maintaining API compatibility
 - ✅ Fixed Next.js image configuration to remove deprecated options
+
+# Documentation Plan
+
+## Priorities
+
+### High Priority
+
+- [x] API Routes Documentation
+
+  - [x] Authentication endpoints
+  - [x] Frame message validation
+  - [x] Examples with Next.js 15.2 compatibility
+
+- [x] Farcaster Integration
+
+  - [x] Auth-kit implementation details
+  - [x] Frame protocol implementation
+  - [x] Error handling and validation
+
+- [x] Component Documentation
+  - [x] AuthProvider
+  - [x] SignInButton
+  - [x] TrendingTopicCard
+  - [x] PastTopicCard
+  - [ ] WagmiProvider
+  - [ ] WalletConnectionButton (future)
+
+### Medium Priority
+
+- [ ] Testing Documentation
+
+  - [ ] Unit testing approach
+  - [ ] Integration testing with Farcaster
+  - [ ] Mock strategies for Farcaster and wallet interactions
+
+- [ ] Performance Optimizations
+  - [ ] Image optimization strategy
+  - [ ] Server-side rendering vs. client-side rendering decisions
+  - [ ] Database query optimization
+
+### Lower Priority
+
+- [ ] Developer Setup Guide
+  - [ ] Local development environment setup
+  - [ ] Environment variables configuration
+  - [ ] Troubleshooting common issues
+
+## Documentation Consolidation Progress
+
+| Area                    | Status         | Notes                                                                      |
+| ----------------------- | -------------- | -------------------------------------------------------------------------- |
+| API Documentation       | ✅ Completed   | Merged from multiple sources into one clear document                       |
+| Farcaster Integration   | ✅ Completed   | Removed duplicate content from wallet-integration.md                       |
+| Component Documentation | 🟡 In Progress | Added documentation for SignInButton, TrendingTopicCard, and PastTopicCard |
+| Wallet Integration      | ✅ Completed   | Focused solely on wallet functionality                                     |
+| Directory Structure     | ✅ Completed   | Updated to reflect current project organization                            |
+
+## Standard Documentation Template
+
+Each component, API route, or feature should use this standard template:
+
+````markdown
+# Component/Feature Name
+
+Brief description of what this component/feature does.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Props/Parameters](#props-parameters)
+- [Usage Example](#usage-example)
+- [Implementation Details](#implementation-details)
+- [Dependencies](#dependencies)
+- [Error Handling](#error-handling)
+- [Changelog](#changelog)
+
+## Overview
+
+Detailed description of the component/feature.
+
+## Props/Parameters
+
+| Name    | Type     | Required | Description          |
+| ------- | -------- | -------- | -------------------- |
+| `prop1` | `string` | Yes      | Description of prop1 |
+| `prop2` | `number` | No       | Description of prop2 |
+
+## Usage Example
+
+```jsx
+// Example code showing how to use the component/feature
+```
+````
+
+## Implementation Details
+
+Technical details about how the component/feature is implemented.
+
+## Dependencies
+
+List of dependencies required by this component/feature.
+
+## Error Handling
+
+Description of how errors are handled.
+
+## Changelog
+
+| Version | Date       | Changes                |
+| ------- | ---------- | ---------------------- |
+| 1.0.0   | YYYY-MM-DD | Initial implementation |
+
+```
+
+## Next Documentation Tasks
+
+1. Create documentation for WagmiProvider component
+2. Begin work on testing documentation
+3. Update API documentation with any new endpoints
+```
