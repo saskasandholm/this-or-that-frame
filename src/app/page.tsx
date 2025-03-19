@@ -25,14 +25,14 @@ export async function generateMetadata(_params: any, parent: ResolvingMetadata):
 }
 
 type Props = {
-  searchParams: {
+  searchParams: Promise<{
     login?: string;
-  };
+  }>;
 };
 
 export default async function HomePage({ searchParams }: Props) {
-  // Check if this page was redirected from a protected route
-  const loginRequired = searchParams.login === 'required';
+  const params = await searchParams;
+  const loginRequired = params.login === 'required';
 
   // Get the active topic
   let activeTopic;
