@@ -1,19 +1,14 @@
 # Directory Structure
 
-This document outlines the complete directory structure of the This-or-That Frame project, explaining the purpose of each file and directory, and identifying any duplicates that need to be addressed.
+This document outlines the complete directory structure of the This-or-That Frame project, explaining the purpose of each file and directory.
 
 ## Overview
 
-The project currently has two implementations mixed together:
-
-1. The main project at `/Users/saskasandholm/frame`
-2. A nested project at `/Users/saskasandholm/frame/this-or-that-frame`
-
-This has led to confusion and duplication. Below is a detailed analysis of the current structure with recommendations for cleanup.
+The project is a Next.js application that implements a Farcaster Frame for "This or That" binary choice voting.
 
 ## Root Directory
 
-- `.env` - Environment variables for the primary project, includes database connection
+- `.env` - Environment variables for the project, includes database connection
 - `.env.example` - Example environment file with documentation
 - `.git/` - Git repository information
 - `.gitignore` - Specifies intentionally untracked files
@@ -22,7 +17,6 @@ This has led to confusion and duplication. Below is a detailed analysis of the c
     - `ci.yml` - Continuous Integration workflow
 - `.next/` - Next.js build directory (generated during development/build)
 - `CHANGELOG.md` - Records of all notable changes to the project
-- `CLEANUP_PLAN.md` - Step-by-step plan for cleaning up the project structure
 - `DIRECTORY_STRUCTURE.md` - This file, documenting the project structure
 - `README.md` - Project overview, features, and setup instructions
 - `__tests__/` - Test files for unit and integration tests
@@ -40,6 +34,7 @@ This has led to confusion and duplication. Below is a detailed analysis of the c
 - `prisma/` - Database schema and migrations using Prisma ORM
 - `public/` - Static assets served by Next.js
   - `audio/` - Sound effects and audio assets
+  - `docs/` - Public documentation (note: this may contain outdated copies of documentation)
   - `images/` - Image assets including app-icon.png and app-splash.png
   - `js/` - Static JavaScript files
   - Various SVG files (next.svg, vercel.svg, etc.)
@@ -47,7 +42,6 @@ This has led to confusion and duplication. Below is a detailed analysis of the c
   - `verify-env.js` - Environment variable validation script
 - `src/` - Source code for the application
 - `tailwind.config.js` - Tailwind CSS configuration
-- `this-or-that-frame-backup.tar.gz` - Archive of the previous nested project (can be removed after verification)
 - `tsconfig.json` - TypeScript configuration
 
 ## Source Code (`src/`)
@@ -59,7 +53,10 @@ Next.js App Router directory containing pages and API routes:
 - `globals.css` - Global CSS styles with Tailwind directives
 - `layout.tsx` - Root layout component
 - `page.tsx` - Main page component (Frame entry point)
+- `providers.tsx` - Provider components for application context
 - `api/` - API routes
+  - `auth/` - Authentication endpoints
+    - `farcaster/route.ts` - Handles Farcaster authentication
   - `frame/` - Frame API handlers
     - `route.ts` - Handles frame interactions
     - `results/route.ts` - Handles results redirects
@@ -86,18 +83,37 @@ React components:
 - `FirstTimeUserExperience.tsx` - Onboarding flow for new users
 - `FirstVoteCelebration.tsx` - Celebration component for first votes
 - `FrameSavePrompt.tsx` - Prompts users to save the frame
+- `SignInButton.tsx` - Authentication button for Farcaster
 - `SplashScreen.tsx` - Loading screen with asset preloading
 - `VotingInterface.tsx` - Interface for voting on topics
 - `ContextAwareTopicView.tsx` - Topic view that adapts to user context
+- `providers/` - Context provider components
+  - `AuthProvider.tsx` - Authentication context provider
+  - `WagmiProvider.tsx` - Wallet provider for blockchain interactions
 - `ui/` - Reusable UI components
   - `FeedbackToggle.tsx` - Toggle for audio/haptic feedback
   - `ChannelLink.tsx` - Component for linking to Farcaster channels
+  - `button.tsx` - Button component
+
+### `src/context/`
+
+Context providers for state management:
+
+- `AuthContext.tsx` - Authentication state context
+
+### `src/hooks/`
+
+Custom React hooks:
+
+- `useAuthState.ts` - Hook for authentication state
+- `useWalletStatus.ts` - Hook for wallet connection status
 
 ### `src/lib/`
 
 Utility functions and services:
 
 - `AsyncErrorHandler.ts` - Handles asynchronous errors
+- `connector.ts` - Wallet connector for Farcaster Frame
 - `ConnectionStateProvider.tsx` - Manages network connection state
 - `ContextProvider.tsx` - Provides frame context to components
 - `ErrorBoundary.tsx` - Catches and handles React errors
@@ -120,18 +136,6 @@ TypeScript type definitions:
 
 - `farcaster-frame-sdk.d.ts` - Type declarations for the Farcaster Frame SDK
 
-## Duplicate Project (Removed)
-
-The `this-or-that-frame/` directory contained a separate implementation of the same project. It has been consolidated into the main project and removed to avoid confusion.
-
-Key differences from the main project were:
-
-- Used newer dependencies (React 19, Next.js 15.2)
-- Had fewer features but a more up-to-date structure
-- Contained its own prisma schema and configurations
-
-An archive of this directory exists as `this-or-that-frame-backup.tar.gz` and can be deleted once everything is verified to be working.
-
 ## Database Structure (`prisma/`)
 
 - `schema.prisma` - Database schema defining models
@@ -141,38 +145,48 @@ An archive of this directory exists as `this-or-that-frame-backup.tar.gz` and ca
 
 ## Documentation (`docs/`)
 
+Comprehensive project documentation:
+
+- `api-routes.md` - API route documentation
+- `architecture.md` - System architecture overview
 - `DATABASE_SCHEMA.md` - Database schema documentation
+- `DEPLOYMENT.md` - Deployment instructions
+- `DOCUMENTATION_PLAN.md` - Plan for documentation updates
+- `FARCASTER_AUTH.md` - Farcaster authentication integration
 - `FRAME_IMPLEMENTATION.md` - Farcaster Frame implementation details
+- `frame-meta-tags.md` - Implementation of Frame meta tags
 - `SETUP.md` - Project setup guide
+- `TROUBLESHOOTING.md` - Common issues and solutions
+- `wallet-integration.md` - Wallet integration documentation
+- `components/` - Component documentation
+  - `AuthProvider.md` - Authentication provider component
+  - `ErrorBoundary.md` - Error boundary component
+  - `SignInButton.md` - Sign-in button component
+  - `WagmiProvider.md` - Wallet provider component
+  - `WalletConnectionButton.md` - Wallet connection button
+  - ... (other component documentation)
+- `lib/` - Library documentation
+  - `AsyncErrorHandler.md` - Async error handler documentation
+- `services/` - Service documentation
+  - `HapticService.md` - Haptic feedback service
+- `archive/` - Archived documentation (obsolete but maintained for historical context)
 
-## Public Directory (`public/`)
+## Public Documentation (`public/docs/`)
 
-Static assets served by Next.js:
+**Note**: This directory contains duplicates of some documentation files. These should be removed and consolidated with the main documentation in the `docs/` directory:
 
-- `audio/` - Sound effects for user interactions
-- `images/` - Static image assets
-  - `app-icon.png` - Application icon used in the Farcaster manifest
-  - `app-splash.png` - Splash image used in the Farcaster manifest
-- `js/` - Static JavaScript files
-- Various SVG files (next.svg, vercel.svg, etc.) - Design assets
+- `FRAME_IMPLEMENTATION.md` - Duplicate of docs/FRAME_IMPLEMENTATION.md
+- `implementation-notes.md` - Implementation notes (to be consolidated)
 
-## Cleanup Recommendations
+## Maintenance Recommendations
 
-1. **Complete Project Cleanup Status**
+1. **Documentation Consolidation**
 
-   - ✅ Duplicate project removed (`this-or-that-frame/`)
-   - ✅ Backup directory removed after verification
-   - ✅ Public assets properly organized
-   - ✅ Environment variables configured
+   - Remove duplicate documentation from `/public/docs/`
+   - Ensure all documentation is maintained in the `docs/` directory
+   - Update cross-references between documentation files
 
-2. **Final Cleanup (Optional)**
-
-   ```
-   # After ensuring everything is working
-   rm -rf this-or-that-frame-backup.tar.gz
-   ```
-
-3. **Ensure Project Maintenance**
+2. **Project Maintenance**
    - Keep documentation updated with any new changes
    - Run `npm audit` regularly to check for security vulnerabilities
    - Verify the environment with `npm run verify-env` when making configuration changes
@@ -197,7 +211,7 @@ Static assets served by Next.js:
 
 ### Component Hierarchy:
 
-- `src/app/layout.tsx` → Root layout
+- `src/app/layout.tsx` → Root layout with providers
   - `src/app/page.tsx` → Main page
     - `src/components/SplashScreen.tsx` → Initial loading
     - `src/components/ContextAwareTopicView.tsx` → Topic display
