@@ -15,13 +15,26 @@ const nextConfig = {
     ];
   },
   images: {
-    // Configure image domains if needed
+    domains: ['localhost', 'api.dicebear.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+        pathname: '/7.x/**',
+      },
     ],
+    // Enable SVG support from trusted sources
+    dangerouslyAllowSVG: true,
+    // Apply security policies for SVGs
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 

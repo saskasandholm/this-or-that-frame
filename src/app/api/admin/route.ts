@@ -7,50 +7,33 @@ import { isAdmin, initializeFirstAdmin } from '@/lib/utils';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const fid = searchParams.get('fid');
-    const listAll = searchParams.get('list') === 'true';
+    const params = request.nextUrl.searchParams;
+    const fidParam = params.get('fid');
 
-    // Validate FID
-    if (!fid) {
-      return NextResponse.json({ error: 'Missing FID parameter' }, { status: 400 });
+    if (!fidParam) {
+      return NextResponse.json({ error: 'FID parameter is required' }, { status: 400 });
     }
+
+    const fid = parseInt(fidParam);
 
     // Initialize first admin if none exists
-    await initializeFirstAdmin(parseInt(fid));
+    await initializeFirstAdmin(fid);
 
-    // For listing all admins, user must be an admin
-    if (listAll) {
-      const adminStatus = await isAdmin(parseInt(fid), 'full_admin');
-      if (!adminStatus) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-      }
-
-      // Get all active admins
-      const admins = await prisma.admin.findMany({
-        where: { isActive: true },
-        orderBy: { createdAt: 'asc' },
-      });
-
-      return NextResponse.json({ admins });
-    }
-
-    // Just check admin status for the given FID
-    const admin = await prisma.admin.findUnique({
-      where: { fid: parseInt(fid) },
-    });
-
-    if (!admin || !admin.isActive) {
-      return NextResponse.json({ isAdmin: false, permissions: null });
-    }
+    // Check admin status
+    const isFullAdmin = await isAdmin(fid, 'full_admin');
+    const isModerateAdmin = isFullAdmin || (await isAdmin(fid, 'moderate'));
 
     return NextResponse.json({
-      isAdmin: true,
-      permissions: admin.permissions,
+      isAdmin: isModerateAdmin,
+      isFullAdmin,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching admin status:', error);
-    return NextResponse.json({ error: 'Failed to fetch admin status' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json(
+      { error: `Failed to fetch admin status: ${errorMessage}` },
+      { status: 500 }
+    );
   }
 }
 
@@ -127,9 +110,13 @@ export async function POST(request: NextRequest) {
       message: 'Admin added successfully',
       admin: newAdmin,
     });
-  } catch (error) {
-    console.error('Error adding admin:', error);
-    return NextResponse.json({ error: 'Failed to add admin' }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('Error adding new admin:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json(
+      { error: `Failed to add new admin: ${errorMessage}` },
+      { status: 500 }
+    );
   }
 }
 
@@ -176,9 +163,10 @@ export async function DELETE(request: NextRequest) {
     });
 
     return NextResponse.json({ message: 'Admin removed successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error removing admin:', error);
-    return NextResponse.json({ error: 'Failed to remove admin' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ error: `Failed to remove admin: ${errorMessage}` }, { status: 500 });
   }
 }
 
@@ -233,8 +221,12 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json({ message: 'Admin permissions updated successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating admin permissions:', error);
-    return NextResponse.json({ error: 'Failed to update admin permissions' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json(
+      { error: `Failed to update admin permissions: ${errorMessage}` },
+      { status: 500 }
+    );
   }
 }

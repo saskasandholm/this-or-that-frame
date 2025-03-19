@@ -12,6 +12,7 @@ interface SplashScreenProps {
   };
   className?: string;
   onComplete?: () => void;
+  loadingText: string;
 }
 
 const SplashScreen: React.FC<SplashScreenProps> = ({
@@ -20,6 +21,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
   preloadAssets,
   className,
   onComplete,
+  loadingText,
 }) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Initializing...');

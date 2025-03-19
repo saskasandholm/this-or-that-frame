@@ -1,206 +1,642 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { FrameContextProvider } from '../lib/ContextProvider';
-import SplashScreen from './SplashScreen';
-import ContextAwareTopicView from './ContextAwareTopicView';
-import { ErrorBoundary } from '../lib/ErrorBoundary';
-import TestComponent from './TestComponent';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useReducer, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import ContextAwareTopicView from './ContextAwareTopicView';
+import FirstTimeUserExperience from './FirstTimeUserExperience';
+import DidYouKnow from './DidYouKnow';
+import DirectChallenge from './DirectChallenge';
+import FrameSavePrompt from './FrameSavePrompt';
+import SplashScreen from './SplashScreen';
+import { useTheme } from 'next-themes';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ArrowRight, LineChart, Sparkles, Clock, TrendingUp, History } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import VotingInterface from './VotingInterface';
+import TrendingTopicCard from './TrendingTopicCard';
+import PastTopicCard from './PastTopicCard';
+import Image from 'next/image';
+import { topicApi, VoteResult } from '@/services/api';
 
-// Define the interface for the page data passed from the server component
-interface PageDataProps {
-  pageData: {
-    currentTopic: {
-      id: number;
-      name: string;
-      optionA: string;
-      optionB: string;
-      category: string;
-      imageA: string;
-      imageB: string;
-    } | null;
-    frameImageUrl: string;
-    framePostUrl: string;
+export interface PageDataProps {
+  topicTitle: string;
+  topicOptions: {
+    optionA: string;
+    optionB: string;
+    imageA: string;
+    imageB: string;
   };
+  currentTopicId: string;
+  frameImageUrl: string;
+  framePostUrl: string;
+  frameButtonText: string;
+  welcomeMessage?: string;
+  appDescription?: string;
+  howItWorks?: string[];
+  trendingTopics?: any[];
+  didYouKnowFacts?: string[];
+  showFirstTimeExperience?: boolean;
 }
 
-const ClientPage: React.FC<PageDataProps> = ({ pageData }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userVote, setUserVote] = useState<'A' | 'B' | null>(null);
-  const [results, setResults] = useState<{
-    totalVotes: number;
-    percentA: number;
-    percentB: number;
-  } | null>(null);
-  const [showTest, setShowTest] = useState(true);
+// Define sample historical topics
+const trendingTopics = [
+  {
+    id: 'trending-1',
+    title: 'Apple vs Android',
+    totalVotes: 12489,
+    category: 'Technology',
+    trend: '+42%',
+  },
+  {
+    id: 'trending-2',
+    title: 'Pizza vs Burgers',
+    totalVotes: 8921,
+    category: 'Food',
+    trend: '+28%',
+  },
+  {
+    id: 'trending-3',
+    title: 'Beach vs Mountains',
+    totalVotes: 7534,
+    category: 'Travel',
+    trend: '+15%',
+  },
+];
 
-  // Simulate loading time (in a real app, this would be fetching user data, etc.)
+const pastTopics = [
+  {
+    id: 'past-1',
+    title: 'Remote Work vs Office',
+    votesA: 6234,
+    votesB: 4912,
+    percentage: 56,
+    winner: 'Remote Work',
+  },
+  {
+    id: 'past-2',
+    title: 'Physical Books vs eBooks',
+    votesA: 7123,
+    votesB: 5489,
+    percentage: 57,
+    winner: 'Physical Books',
+  },
+  {
+    id: 'past-3',
+    title: 'Coffee vs Tea',
+    votesA: 8432,
+    votesB: 6531,
+    percentage: 53,
+    winner: 'Coffee',
+  },
+];
+
+// Add this reducer type and implementation before the ClientPage component
+type VotingState = {
+  loading: boolean;
+  loadingResults: boolean;
+  userChoice: 'A' | 'B' | null;
+  results: { A: number; B: number } | null;
+  votedOnCurrentTopic: boolean;
+  showDidYouKnow: boolean;
+  showDirectChallenge: boolean;
+  showFrameSavePrompt: boolean;
+  isRareOpinion: boolean;
+  isHighlyContested: boolean;
+  error: string | null;
+};
+
+type VotingAction =
+  | { type: 'VOTE_START'; choice: 'A' | 'B' }
+  | { type: 'VOTE_SUCCESS'; choice: 'A' | 'B'; results: { A: number; B: number } }
+  | { type: 'VOTE_ERROR'; error: string }
+  | { type: 'SHOW_DID_YOU_KNOW' }
+  | { type: 'SHOW_CHALLENGE' }
+  | { type: 'SHOW_FRAME_PROMPT' }
+  | { type: 'HIDE_FRAME_PROMPT' }
+  | { type: 'HIDE_CHALLENGE' }
+  | { type: 'SET_RARE_OPINION'; value: boolean }
+  | { type: 'SET_CONTESTED'; value: boolean }
+  | { type: 'RESET_ERROR' };
+
+function votingReducer(state: VotingState, action: VotingAction): VotingState {
+  switch (action.type) {
+    case 'VOTE_START':
+      return {
+        ...state,
+        loadingResults: true,
+        userChoice: action.choice,
+        error: null,
+      };
+    case 'VOTE_SUCCESS':
+      return {
+        ...state,
+        loadingResults: false,
+        results: action.results,
+        votedOnCurrentTopic: true,
+        userChoice: action.choice,
+      };
+    case 'VOTE_ERROR':
+      return {
+        ...state,
+        loadingResults: false,
+        error: action.error,
+      };
+    case 'SHOW_DID_YOU_KNOW':
+      return { ...state, showDidYouKnow: true };
+    case 'SHOW_CHALLENGE':
+      return { ...state, showDirectChallenge: true };
+    case 'HIDE_CHALLENGE':
+      return { ...state, showDirectChallenge: false };
+    case 'SHOW_FRAME_PROMPT':
+      return { ...state, showFrameSavePrompt: true };
+    case 'HIDE_FRAME_PROMPT':
+      return { ...state, showFrameSavePrompt: false };
+    case 'SET_RARE_OPINION':
+      return { ...state, isRareOpinion: action.value };
+    case 'SET_CONTESTED':
+      return { ...state, isHighlyContested: action.value };
+    case 'RESET_ERROR':
+      return { ...state, error: null };
+    default:
+      return state;
+  }
+}
+
+// Add a new OptimizedImage component for better image handling
+const OptimizedImage = ({
+  src,
+  alt,
+  width = 240,
+  height = 180,
+  priority = false,
+  className = '',
+  onLoad,
+}: {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  priority?: boolean;
+  className?: string;
+  onLoad?: () => void;
+}) => {
+  const [error, setError] = useState(false);
+  const fallbackSrc = '/images/fallback-image.jpg'; // Default fallback
+
+  return (
+    <div className={`relative overflow-hidden ${className}`}>
+      <Image
+        src={error ? fallbackSrc : src}
+        alt={alt}
+        width={width}
+        height={height}
+        priority={priority}
+        onError={() => setError(true)}
+        onLoad={onLoad}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        placeholder="blur"
+        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFeAJ5jUTrAwAAAABJRU5ErkJggg=="
+        style={{ objectFit: 'cover' }}
+        className="transition-opacity duration-300"
+      />
+    </div>
+  );
+};
+
+const ClientPage = ({
+  topicTitle,
+  topicOptions,
+  currentTopicId,
+  frameImageUrl,
+  framePostUrl,
+  frameButtonText,
+  welcomeMessage,
+  appDescription,
+  howItWorks,
+  trendingTopics: providedTrendingTopics,
+  didYouKnowFacts,
+  showFirstTimeExperience: forceFirstTimeExperience,
+}: PageDataProps) => {
+  const { theme, setTheme } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [loadingStatus, setLoadingStatus] = useState('Loading topics...');
+  const [activeTab, setActiveTab] = useState('daily');
+
+  // Replace multiple useState calls with useReducer
+  const [votingState, dispatch] = useReducer(votingReducer, {
+    loading: false,
+    loadingResults: false,
+    userChoice: null,
+    results: null,
+    votedOnCurrentTopic: false,
+    showDidYouKnow: false,
+    showDirectChallenge: false,
+    showFrameSavePrompt: false,
+    isRareOpinion: false,
+    isHighlyContested: false,
+    error: null,
+  });
+
+  const [showFirstTimeExperience, setShowFirstTimeExperience] = useState(() => {
+    if (forceFirstTimeExperience !== undefined) return forceFirstTimeExperience;
+
+    if (typeof window !== 'undefined') {
+      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+      return hasSeenIntro !== 'true';
+    }
+    return true;
+  });
+
+  // Use provided trending topics if available, otherwise use fetched ones
+  const displayTrendingTopics = providedTrendingTopics || trendingTopics;
+
+  // Detect if it's the user's first visit
   useEffect(() => {
+    const isFirstVisit = localStorage.getItem('hasVisitedBefore') !== 'true';
+    if (isFirstVisit && !loading) {
+      setShowFirstTimeExperience(true);
+      localStorage.setItem('hasVisitedBefore', 'true');
+    }
+  }, [loading]);
+
+  // Simulating loading time
+  useEffect(() => {
+    // Always use dark theme, no switching
+    setTheme('dark');
+
+    // Simulate initial data loading
     const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+      setLoading(false);
+
+      // Check if it's a first-time user
+      const isFirstTime = Math.random() > 0.7; // Simulating 30% chance of first-time user
+      if (isFirstTime) {
+        setShowFirstTimeExperience(true);
+      }
+    }, 1500);
 
     return () => clearTimeout(timer);
+  }, [setTheme]);
+
+  // Simulating loading time
+  useEffect(() => {
+    const loadingTimer = setTimeout(() => {
+      setLoadingStatus('Preparing voting options...');
+
+      const finalTimer = setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+
+      return () => clearTimeout(finalTimer);
+    }, 800);
+
+    return () => clearTimeout(loadingTimer);
   }, []);
 
-  // Handle vote submission
-  const handleVote = async (option: 'A' | 'B') => {
-    setUserVote(option);
-    setIsLoading(true);
+  // Fix the handleVote function
+  const handleVote = useCallback(
+    async (choice: 'A' | 'B') => {
+      // Prevent voting if already in progress
+      if (votingState.loadingResults) return;
 
-    try {
-      // In a real app, you would make an API call to record the vote
-      // const response = await fetch('/api/votes', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     topicId: pageData.currentTopic?.id,
-      //     choice: option
-      //   })
-      // });
-      // const data = await response.json();
+      // Update state to indicate voting in progress
+      dispatch({ type: 'VOTE_START', choice });
 
-      // Simulate API response
-      setTimeout(() => {
-        setResults({
-          totalVotes: 42,
-          percentA: option === 'A' ? 60 : 40,
-          percentB: option === 'A' ? 40 : 60,
+      try {
+        // Simulate API call with timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Create simulated result to match the expected API response
+        const simulatedResult = {
+          success: true,
+          topicId: currentTopicId,
+          choice: choice,
+          breakdown: {
+            A: Math.floor(Math.random() * 100) + 30,
+            B: Math.floor(Math.random() * 100) + 20,
+            totalVotes: 0,
+            percentA: 0,
+            percentB: 0,
+          },
+          isRareOpinion: Math.random() > 0.7,
+          isHighlyContested: Math.random() > 0.6,
+        };
+
+        // Calculate the total votes and percentages
+        simulatedResult.breakdown.totalVotes =
+          simulatedResult.breakdown.A + simulatedResult.breakdown.B;
+
+        simulatedResult.breakdown.percentA = Math.round(
+          (simulatedResult.breakdown.A / simulatedResult.breakdown.totalVotes) * 100
+        );
+
+        simulatedResult.breakdown.percentB = Math.round(
+          (simulatedResult.breakdown.B / simulatedResult.breakdown.totalVotes) * 100
+        );
+
+        // Update state with results
+        dispatch({
+          type: 'VOTE_SUCCESS',
+          choice,
+          results: {
+            A: simulatedResult.breakdown.A,
+            B: simulatedResult.breakdown.B,
+          },
         });
-        setIsLoading(false);
-      }, 1500);
-    } catch (error) {
-      console.error('Error recording vote:', error);
-      setIsLoading(false);
-    }
+
+        // Check if this is a rare opinion
+        if (simulatedResult.isRareOpinion) {
+          dispatch({ type: 'SET_RARE_OPINION', value: true });
+        }
+
+        // Check if this is a highly contested topic
+        if (simulatedResult.isHighlyContested) {
+          dispatch({ type: 'SET_CONTESTED', value: true });
+        }
+
+        // Show "Did You Know" after a delay
+        setTimeout(() => {
+          dispatch({ type: 'SHOW_DID_YOU_KNOW' });
+
+          // Show challenge friends option after another delay
+          setTimeout(() => {
+            dispatch({ type: 'SHOW_CHALLENGE' });
+
+            // Finally show frame save prompt
+            setTimeout(() => {
+              dispatch({ type: 'SHOW_FRAME_PROMPT' });
+            }, 3000);
+          }, 2000);
+        }, 1500);
+      } catch (error) {
+        console.error('Error voting:', error);
+
+        // Provide a user-friendly error message
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unable to submit your vote. Please try again.';
+
+        dispatch({ type: 'VOTE_ERROR', error: errorMessage });
+
+        // Reset error after 5 seconds
+        setTimeout(() => {
+          dispatch({ type: 'RESET_ERROR' });
+        }, 5000);
+      }
+    },
+    [currentTopicId, votingState.loadingResults, dispatch]
+  );
+
+  const handleCompleteFirstTimeExperience = useCallback(() => {
+    setShowFirstTimeExperience(false);
+    localStorage.setItem('hasSeenIntro', 'true');
+  }, []);
+
+  const handleCloseFrameSavePrompt = useCallback(() => {
+    dispatch({ type: 'HIDE_FRAME_PROMPT' });
+  }, []);
+
+  const handleShowChallenge = useCallback(() => {
+    dispatch({ type: 'SHOW_CHALLENGE' });
+  }, []);
+
+  const handleCloseChallenge = useCallback(() => {
+    dispatch({ type: 'HIDE_CHALLENGE' });
+  }, []);
+
+  // Render skeleton loaders for different content sections
+  const renderTopicSkeleton = () => (
+    <div className="space-y-6 animate-pulse">
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-3/4 mx-auto" />
+        <Skeleton className="h-4 w-1/2 mx-auto" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col space-y-3">
+          <Skeleton className="h-[200px] w-full rounded-xl" />
+          <Skeleton className="h-6 w-2/3 mx-auto" />
+        </div>
+        <div className="flex flex-col space-y-3">
+          <Skeleton className="h-[200px] w-full rounded-xl" />
+          <Skeleton className="h-6 w-2/3 mx-auto" />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderTrendingSkeleton = () => (
+    <div className="space-y-4">
+      {[1, 2, 3].map(i => (
+        <Card key={i} className="animate-pulse">
+          <CardHeader className="pb-2">
+            <Skeleton className="h-5 w-2/3" />
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-4 w-1/6" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-1/2" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  // Check if we have valid topic data
+  const hasValidTopic = topicTitle && topicOptions?.optionA && topicOptions?.optionB;
+
+  // Define the 'handleTryAgain' function
+  const handleTryAgain = () => {
+    console.log('Try again action triggered');
   };
 
   return (
-    <ErrorBoundary
-      fallback={
-        <div className="p-6 text-red-500">
-          Something went wrong loading the frame. Please try again.
-        </div>
-      }
-    >
-      <FrameContextProvider>
-        <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white overflow-x-hidden">
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            {/* Header */}
-            <header className="mb-10 text-center animate-fade-in">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-transparent bg-clip-text animate-gradient">
-                This or That
-              </h1>
-              <p className="mt-3 text-gray-300 text-lg max-w-md mx-auto">
-                Vote on daily binary choices and see what the community thinks
-              </p>
-            </header>
+    <div className="min-h-screen pb-20">
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            className="fixed inset-0 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <SplashScreen loadingText={loadingStatus} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            {/* Test component to verify React and CSS are working */}
-            {showTest && (
-              <div className="mb-12 w-full animate-slide-up">
-                <TestComponent />
-                <div className="mt-6 text-center">
-                  <Button
-                    variant="secondary"
-                    onClick={() => setShowTest(false)}
-                    className="font-medium"
-                    aria-label="Hide test component section"
-                  >
-                    Hide Test Component
-                  </Button>
+      <AnimatePresence mode="wait">
+        {showFirstTimeExperience ? (
+          <FirstTimeUserExperience onComplete={() => setShowFirstTimeExperience(false)} />
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="container max-w-lg mx-auto p-4">
+              {welcomeMessage && appDescription && (
+                <div className="mb-8">
+                  <h1 className="text-2xl font-bold">{welcomeMessage}</h1>
+                  <p className="text-muted-foreground">{appDescription}</p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <SplashScreen
-                  preloadAssets={{
-                    images: [pageData.currentTopic?.imageA, pageData.currentTopic?.imageB].filter(
-                      Boolean
-                    ) as string[],
-                  }}
+              <Tabs defaultValue="daily" className="mb-8" onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-3 mb-6">
+                  <TabsTrigger value="daily" className="flex items-center">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Daily
+                  </TabsTrigger>
+                  <TabsTrigger value="trending" className="flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Trending
+                  </TabsTrigger>
+                  <TabsTrigger value="past" className="flex items-center">
+                    <History className="w-4 h-4 mr-2" />
+                    Past
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="daily" className="mt-4">
+                  {loading ? (
+                    renderTopicSkeleton()
+                  ) : hasValidTopic ? (
+                    currentTopicId && topicOptions ? (
+                      <ContextAwareTopicView
+                        topicId={currentTopicId}
+                        topicTitle={topicTitle || 'Unknown Topic'}
+                        optionA={topicOptions.optionA}
+                        optionB={topicOptions.optionB}
+                        imageA={topicOptions.imageA}
+                        imageB={topicOptions.imageB}
+                        onVote={handleVote}
+                        userVote={votingState.userChoice || undefined}
+                        isLoading={votingState.loadingResults}
+                        hasVoted={votingState.votedOnCurrentTopic}
+                        showDidYouKnow={votingState.showDidYouKnow}
+                        showDirectChallenge={votingState.showDirectChallenge}
+                        isRareOpinion={votingState.isRareOpinion}
+                        isHighlyContested={votingState.isHighlyContested}
+                        onTryAgain={handleTryAgain}
+                      />
+                    ) : (
+                      <div className="text-center space-y-4">
+                        <h1 className="text-2xl font-bold">No active topic found</h1>
+                        <p className="text-muted-foreground">
+                          There are no active voting topics at the moment. Please check back later.
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="text-center space-y-4">
+                      <h1 className="text-2xl font-bold">No active topic found</h1>
+                      <p className="text-muted-foreground">
+                        There are no active voting topics at the moment. Please check back later.
+                      </p>
+                    </div>
+                  )}
+
+                  {votingState.showDidYouKnow && !loading && votingState.userChoice && (
+                    <div className="mt-8">
+                      <DidYouKnow
+                        facts={[
+                          'Did you know? ' +
+                            (votingState.userChoice === 'A'
+                              ? topicOptions.optionA
+                              : topicOptions.optionB) +
+                            ' is a popular choice among users in your demographic!',
+                        ]}
+                        className="mb-4"
+                      />
+                    </div>
+                  )}
+
+                  {votingState.showDirectChallenge &&
+                    !loading &&
+                    votingState.userChoice &&
+                    topicOptions &&
+                    currentTopicId && (
+                      <div className="mt-6">
+                        <DirectChallenge
+                          topicId={currentTopicId}
+                          topicTitle={topicTitle || ''}
+                          userChoice={votingState.userChoice}
+                          optionA={topicOptions.optionA}
+                          optionB={topicOptions.optionB}
+                          onClose={handleCloseChallenge}
+                        />
+                      </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="trending">
+                  {loading ? (
+                    renderTrendingSkeleton()
+                  ) : (
+                    <div className="space-y-4">
+                      {displayTrendingTopics.map((topic, index) => (
+                        <TrendingTopicCard key={topic.id} topic={topic} rank={index + 1} />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="past">
+                  {loading ? (
+                    renderTrendingSkeleton()
+                  ) : (
+                    <div className="space-y-4">
+                      {pastTopics.map(topic => (
+                        <PastTopicCard key={topic.id} topic={topic} />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+
+              {votingState.showFrameSavePrompt && currentTopicId && (
+                <FrameSavePrompt
+                  topicId={currentTopicId}
+                  topicTitle={topicTitle || 'Unknown Topic'}
+                  onClose={handleCloseFrameSavePrompt}
                 />
-              </div>
-            ) : (
-              <div className="w-full animate-fade-in space-y-8">
-                {pageData.currentTopic ? (
-                  <Card className="bg-card/25 backdrop-blur-lg border-border/50 shadow-xl overflow-hidden">
-                    <ContextAwareTopicView
-                      topicId={String(pageData.currentTopic.id)}
-                      topicTitle={pageData.currentTopic.name}
-                      optionA={pageData.currentTopic.optionA}
-                      optionB={pageData.currentTopic.optionB}
-                      imageA={pageData.currentTopic.imageA}
-                      imageB={pageData.currentTopic.imageB}
-                      results={results || undefined}
-                      userVote={userVote}
-                      isLoading={isLoading}
-                      onVote={handleVote}
-                    />
-                  </Card>
-                ) : (
-                  <Card className="p-8 text-center shadow-lg bg-card/25 backdrop-blur-lg border-border/50">
-                    <CardContent className="pt-6">
-                      <p className="text-xl font-medium">
-                        No active topic found. Check back later!
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+              )}
 
-                {/* Frame Information Card */}
-                <Card className="shadow-xl border border-gray-800/40 bg-card/25 backdrop-blur-lg overflow-hidden">
-                  <CardHeader className="pb-2 border-b border-gray-800/20">
-                    <CardTitle className="text-2xl font-semibold bg-gradient-to-r from-purple-400 to-primary-600 bg-clip-text text-transparent">
-                      Frame Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4 pt-4">
-                    <div className="border-l-4 border-purple-500 pl-4 py-1">
-                      <p className="text-sm text-muted-foreground font-medium mb-1">Image URL:</p>
-                      <div className="bg-muted/50 p-3 rounded-md mt-1 overflow-x-auto">
-                        <code className="text-sm font-mono text-secondary-foreground break-all">
-                          {pageData.frameImageUrl}
-                        </code>
-                      </div>
-                    </div>
-                    <div className="border-l-4 border-pink-500 pl-4 py-1">
-                      <p className="text-sm text-muted-foreground font-medium mb-1">Post URL:</p>
-                      <div className="bg-muted/50 p-3 rounded-md mt-1 overflow-x-auto">
-                        <code className="text-sm font-mono text-secondary-foreground break-all">
-                          {pageData.framePostUrl}
-                        </code>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="pt-0">
-                    <div className="bg-primary/10 rounded-lg p-4 w-full border border-primary/20">
-                      <p className="text-sm font-medium text-center">
-                        This page serves as a Farcaster Frame. Cast it to enable interactive voting!
-                      </p>
-                    </div>
-                  </CardFooter>
-                </Card>
+              {didYouKnowFacts && didYouKnowFacts.length > 0 && (
+                <DidYouKnow facts={didYouKnowFacts} className="mt-8 mb-6" />
+              )}
 
-                {/* Quick Links to Showcase */}
-                <div className="text-center pt-4 pb-8">
-                  <p className="text-muted-foreground mb-4">Want to see all UI components?</p>
-                  <a href="/ui-showcase">
-                    <Button variant="gradient" size="lg" className="font-medium">
-                      View UI Showcase
-                    </Button>
-                  </a>
+              <div className="mt-8 border-t pt-4">
+                <div className="text-sm text-muted-foreground">
+                  <p className="mb-2">This is a Farcaster Frame</p>
+                  <p className="mb-1">
+                    <span role="img" aria-label="Tip">
+                      💡
+                    </span>
+                    Tip: You can save this frame to your collection by clicking the "Add Frame"
+                    button in your Farcaster client.
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
-        </main>
-      </FrameContextProvider>
-    </ErrorBoundary>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

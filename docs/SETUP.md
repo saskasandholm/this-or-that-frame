@@ -78,6 +78,64 @@ Before you begin, ensure you have the following installed:
 
    Your application should now be running at [http://localhost:3000](http://localhost:3000) (or another port if 3000 is in use).
 
+## Next.js 15.2 Compatibility
+
+This project uses Next.js 15.2, which includes several important features and changes:
+
+1. **API Route Handler Types**
+
+   Next.js 15.2 has stricter type requirements for API route handlers. Use the following pattern:
+
+   ```typescript
+   // src/app/api/route.ts
+   import { NextRequest, NextResponse } from 'next/server';
+
+   export async function GET(request: NextRequest) {
+     // Handler code...
+     return NextResponse.json({ data: 'example' });
+   }
+
+   // For dynamic routes (src/app/api/[id]/route.ts)
+   export async function GET(request: NextRequest, context: { params: { id: string } }) {
+     const id = context.params.id;
+     // Handler code...
+     return NextResponse.json({ id });
+   }
+   ```
+
+2. **Streaming Metadata**
+
+   Next.js 15.2 supports streaming metadata, which improves initial page load performance:
+
+   ```typescript
+   // app/page.tsx
+   export const generateMetadata = async () => {
+     // This no longer blocks initial UI render
+     return {
+       title: 'My App',
+       description: 'Description',
+     };
+   };
+   ```
+
+3. **Redesigned Error UI**
+
+   Take advantage of the improved error overlay by ensuring your code has proper error boundaries and error handlers.
+
+4. **If Experiencing Type Errors**
+
+   If you encounter persistent type errors in API routes, you can use the `any` type as a temporary solution:
+
+   ```typescript
+   export async function GET(request: NextRequest, context: any) {
+     const id = context.params.id;
+     // Handler code...
+     return NextResponse.json({ id });
+   }
+   ```
+
+For more details on Next.js 15.2 compatibility, see the [Troubleshooting Guide](./TROUBLESHOOTING.md#next-js-152-compatibility-issues).
+
 ## Tailwind CSS v4 Configuration
 
 This project uses Tailwind CSS v4, which has some specific requirements:
@@ -225,7 +283,13 @@ If you encounter issues:
    - Verify `data-slot` attributes are used correctly
    - Check for proper import paths and component exports
 
-3. **Dependency Conflicts**
+3. **Next.js 15.2 Type Issues**
+
+   - For API route handler type errors, use the context pattern shown in the Next.js 15.2 Compatibility section
+   - As a last resort, use `context: any` to bypass type checking issues
+   - Check for proper parameter types in API route handlers
+
+4. **Dependency Conflicts**
    - Use `--legacy-peer-deps` flag when installing new packages
    - Check for conflicting React versions in your dependencies
 

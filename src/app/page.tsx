@@ -1,111 +1,167 @@
-import { Metadata } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 import { prisma } from '@/lib/prisma';
-import ClientPage from '../components/ClientPage';
+import ClientPage from '@/components/ClientPage';
 
-export const metadata: Metadata = {
-  title: 'This or That - Daily Choices',
-  description: 'Vote on daily binary choices and see what the Farcaster community thinks',
-  openGraph: {
-    title: 'This or That - Daily Choices',
-    description: 'Vote on daily binary choices and see what the Farcaster community thinks',
-    images: [
-      {
-        url: `${process.env.NEXT_PUBLIC_APP_URL}/api/og`,
-        width: 1200,
-        height: 630,
-        alt: 'This or That Frame',
-      },
-    ],
-  },
-};
+export async function generateMetadata(_params: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const parentMetadata = await parent;
+  const previousTitle = parentMetadata.title?.absolute || 'This or That';
+  const previousDescription =
+    parentMetadata.description || 'Vote on binary choices and see what the community thinks';
 
-// Frame metadata
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1.0,
-};
-
-export default async function Home() {
-  // Get the current topic
-  const now = new Date();
-  const currentTopic = await prisma.topic.findFirst({
-    where: {
-      isActive: true,
-      startDate: {
-        lte: now,
-      },
-      OR: [
-        {
-          endDate: null,
-        },
-        {
-          endDate: {
-            gte: now,
-          },
-        },
-      ],
+  return {
+    title: previousTitle,
+    description: previousDescription,
+    openGraph: {
+      title: previousTitle,
+      description: previousDescription,
+      type: 'website',
     },
-    orderBy: {
-      startDate: 'desc',
+    twitter: {
+      card: 'summary_large_image',
+      title: previousTitle,
+      description: previousDescription,
     },
-    include: {
-      category: true,
-    },
-  });
-
-  // Prepare URLs
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
-  const frameImageUrl = `${appUrl}/api/og${currentTopic ? `/topic/${currentTopic.id}` : ''}`;
-  const framePostUrl = `${appUrl}/api/frame`;
-
-  // Prepare data for client component
-  const pageData = {
-    currentTopic: currentTopic
-      ? {
-          id: currentTopic.id,
-          name: currentTopic.name,
-          optionA: currentTopic.optionA,
-          optionB: currentTopic.optionB,
-          category: currentTopic.category.name,
-          // Add default image placeholders if actual images aren't available
-          imageA: currentTopic.imageA || '/images/placeholder-a.png',
-          imageB: currentTopic.imageB || '/images/placeholder-b.png',
-        }
-      : null,
-    frameImageUrl,
-    framePostUrl,
   };
+}
+
+export default async function HomePage() {
+  // Get the active topic
+  let activeTopic;
+  try {
+    activeTopic = await prisma.topic.findFirst({
+      where: {
+        isActive: true,
+      },
+      include: {
+        category: true,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching active topic:', error);
+    // Continue with fallback data
+  }
+
+  // Get trending topics - Example data, would normally be fetched from DB
+  const trendingTopics = [
+    {
+      id: '1',
+      title: 'Apple vs Android',
+      totalVotes: 5842,
+      category: 'Tech',
+      trend: 'Rising',
+    },
+    {
+      id: '2',
+      title: 'Pizza vs Burgers',
+      totalVotes: 4721,
+      category: 'Food',
+      trend: 'Hot',
+    },
+    {
+      id: '3',
+      title: 'Movies vs Books',
+      totalVotes: 3654,
+      category: 'Entertainment',
+      trend: 'Steady',
+    },
+  ];
+
+  // Get the current server port
+  const currentPort = process.env.PORT || '3000';
+
+  // Base URL for API endpoints
+  const baseUrl = `${process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${currentPort}`}`;
+
+  // High-quality crypto images
+  const cryptoImages = {
+    bitcoin:
+      'https://images.unsplash.com/photo-1543699565-003b8adda5fc?q=80&w=1280&auto=format&fit=crop',
+    ethereum:
+      'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?q=80&w=1280&auto=format&fit=crop',
+  };
+
+  // Get appropriate images based on topic content
+  let imageA = activeTopic?.imageA;
+  let imageB = activeTopic?.imageB;
+
+  // If the topic is about Bitcoin/Ethereum, use high-quality images
+  if (activeTopic?.optionA?.toLowerCase().includes('bitcoin')) {
+    imageA = cryptoImages.bitcoin;
+  } else if (activeTopic?.optionA?.toLowerCase().includes('ethereum')) {
+    imageA = cryptoImages.ethereum;
+  }
+
+  if (activeTopic?.optionB?.toLowerCase().includes('bitcoin')) {
+    imageB = cryptoImages.bitcoin;
+  } else if (activeTopic?.optionB?.toLowerCase().includes('ethereum')) {
+    imageB = cryptoImages.ethereum;
+  }
+
+  // Fallback images if no custom images are provided
+  const defaultImageA =
+    imageA ||
+    `${baseUrl}/api/og?option=A&topic=${encodeURIComponent(activeTopic?.optionA || 'Option A')}`;
+  const defaultImageB =
+    imageB ||
+    `${baseUrl}/api/og?option=B&topic=${encodeURIComponent(activeTopic?.optionB || 'Option B')}`;
+
+  // Prepare the URLs for the frame
+  const frameImageUrl = `${baseUrl}/api/frame/image`;
+  const framePostUrl = activeTopic
+    ? `${baseUrl}/api/frame/post?topicId=${activeTopic.id}`
+    : `${baseUrl}/api/frame/post`;
+
+  // Did You Know facts for the active topic
+  const didYouKnowFacts = [
+    'Bitcoin was created in 2009 by an unknown person or group using the pseudonym Satoshi Nakamoto.',
+    'Ethereum was proposed in 2013 by programmer Vitalik Buterin and went live in 2015.',
+    'Unlike Bitcoin which has a fixed supply of 21 million coins, Ethereum has no maximum supply limit.',
+    'Bitcoin uses a consensus mechanism called Proof of Work, while Ethereum transitioned to Proof of Stake in 2022.',
+  ];
 
   return (
     <>
-      {/* Client component with all the interactive features */}
-      <ClientPage pageData={pageData} />
+      {/* Frame metadata - hidden from regular view but used by Farcaster */}
+      <meta property="fc:frame" content="vNext" />
+      <meta property="fc:frame:image" content={frameImageUrl} />
+      <meta property="fc:frame:post_url" content={framePostUrl} />
+      <meta property="fc:frame:button:1" content="Vote Option A" />
+      <meta property="fc:frame:button:2" content="Vote Option B" />
+      <meta property="fc:frame:button:3" content="View Results" />
 
-      {/* Frame Meta Tags */}
-      <head>
-        <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content={frameImageUrl} />
-        <meta property="fc:frame:post_url" content={framePostUrl} />
-        <meta
-          property="fc:frame:button:1"
-          content={currentTopic ? currentTopic.optionA : 'Option A'}
-        />
-        <meta
-          property="fc:frame:button:2"
-          content={currentTopic ? currentTopic.optionB : 'Option B'}
-        />
-        {currentTopic && (
-          <>
-            <meta property="fc:frame:button:1:value" content="A" />
-            <meta property="fc:frame:button:2:value" content="B" />
-            <meta
-              property="fc:frame:state"
-              content={JSON.stringify({ topicId: currentTopic.id })}
-            />
-          </>
-        )}
-        <meta property="fc:frame:image:aspect_ratio" content="1.91:1" />
-      </head>
+      <ClientPage
+        topicTitle={activeTopic?.name || 'Bitcoin or Ethereum?'}
+        topicOptions={
+          activeTopic
+            ? {
+                optionA: activeTopic.optionA,
+                optionB: activeTopic.optionB,
+                imageA: defaultImageA,
+                imageB: defaultImageB,
+              }
+            : {
+                optionA: 'Bitcoin',
+                optionB: 'Ethereum',
+                imageA: cryptoImages.bitcoin,
+                imageB: cryptoImages.ethereum,
+              }
+        }
+        currentTopicId={activeTopic?.id?.toString() || 'sample-1'}
+        frameImageUrl={frameImageUrl}
+        framePostUrl={framePostUrl}
+        frameButtonText="Share on Farcaster"
+        welcomeMessage="Welcome to This or That!"
+        appDescription="Join thousands of users in the Farcaster community voting on daily topics. Express your opinion, discover what others think, and challenge your friends."
+        howItWorks={[
+          'Vote on daily topics',
+          'See real-time community results',
+          'Share topics with friends',
+          'Earn streaks by voting daily',
+        ]}
+        trendingTopics={trendingTopics}
+        didYouKnowFacts={didYouKnowFacts}
+        showFirstTimeExperience={true}
+      />
     </>
   );
 }

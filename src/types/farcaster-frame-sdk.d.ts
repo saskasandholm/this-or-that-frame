@@ -50,13 +50,24 @@ declare module '@farcaster/frame-sdk' {
     token: string;
   }
 
+  // AddFrame result types
+  export type AddFrameResult =
+    | {
+        type: 'success';
+        notificationDetails?: FrameNotificationDetails;
+      }
+    | {
+        type: 'error';
+        errorReason: 'invalid-domain-manifest' | 'rejected-by-user';
+      };
+
   // SDK actions
   export interface Actions {
     ready(): Promise<void>;
     openUrl(url: string): Promise<void>;
     close(): Promise<void>;
     setPrimaryButton(options: any): Promise<void>;
-    addFrame(): Promise<any>;
+    addFrame(): Promise<AddFrameResult>;
     signIn(): Promise<any>;
     viewProfile(): Promise<any>;
     viewToken(): Promise<any>;

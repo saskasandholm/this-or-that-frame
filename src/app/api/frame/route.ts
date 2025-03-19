@@ -1,97 +1,127 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentTopic } from '@/lib/topics';
 
-export async function POST(request: NextRequest) {
+// Define the button types for consistent handling
+const BUTTON_TYPES = {
+  OPTION_A: 1,
+  OPTION_B: 2,
+  ADMIN: 3,
+};
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const formData = await request.formData();
-    const frameMessage = formData.get('message');
+    // Try to parse the request body
+    const data = await req.json();
 
-    if (!frameMessage) {
-      return NextResponse.json({ error: 'Missing frame message' }, { status: 400 });
-    }
+    // Extract fid from untrustedData if available
+    const fid = data?.untrustedData?.fid;
 
-    // Parse the frame message
-    const message = JSON.parse(frameMessage.toString());
+    // Get the current active topic
+    const currentTopic = await getCurrentTopic();
 
-    // Extract data from the message
-    const { buttonIndex = 1, fid, _castId, _inputText } = message;
-
-    // Get the current topic
-    const now = new Date();
-    const currentTopic = await prisma.topic.findFirst({
-      where: {
-        isActive: true,
-        startDate: {
-          lte: now,
-        },
-        OR: [
-          {
-            endDate: null,
-          },
-          {
-            endDate: {
-              gte: now,
-            },
-          },
-        ],
-      },
-      orderBy: {
-        startDate: 'desc',
-      },
-    });
-
+    // If no active topic is found, return a message
     if (!currentTopic) {
-      return NextResponse.json({
-        message: 'No active topic found',
-      });
-    }
-
-    // Prepare URLs
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
-    // Record the vote based on button index
-    const choice = buttonIndex === 1 ? 'A' : 'B';
-
-    // If the user has a Farcaster ID, record their vote
-    if (fid) {
-      // Submit the vote via the vote API
-      try {
-        await fetch(`${appUrl}/api/votes`, {
-          method: 'POST',
+      return new NextResponse(
+        JSON.stringify({
+          message: 'Welcome to This or That!',
+          buttons: [
+            {
+              label: 'Visit website',
+              action: 'post_redirect',
+            },
+          ],
+        }),
+        {
+          status: 200,
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            topicId: currentTopic.id,
-            fid,
-            choice,
-          }),
-        });
-      } catch (error) {
-        console.error('Error recording vote:', error);
-      }
+        }
+      );
     }
 
-    // Return a frame response with the results URL
-    const frameResponse = {
-      image: `${appUrl}/api/og/results/${currentTopic.id}`,
-      buttons: [
-        {
-          label: 'View Details',
-          action: 'post_redirect',
-        },
-      ],
-      post_url: `${appUrl}/api/frame/results`,
-      state: {
-        topicId: currentTopic.id.toString(),
-        choice,
-        fid: fid?.toString() || '',
+    // Create the post URL with topic ID parameter
+    const postUrl = new URL('/api/frame/post', req.url);
+    postUrl.searchParams.append('topicId', currentTopic.id.toString());
+
+    // Initialize buttons array with voting options
+    const buttons = [
+      { index: BUTTON_TYPES.OPTION_A, label: currentTopic.optionA, action: 'post' },
+      { index: BUTTON_TYPES.OPTION_B, label: currentTopic.optionB, action: 'post' },
+    ];
+
+    // Prepare the frame response data without buttons yet
+    const frameData: {
+      message: string;
+      image: {
+        url: string;
+        aspectRatio: string;
+      };
+      buttons: Array<{ label: string; action: string }>;
+      postUrl: string;
+    } = {
+      message: `${currentTopic.name}`,
+      image: {
+        url: new URL('/api/frame/image', req.url).toString(),
+        aspectRatio: '1.91:1',
       },
+      buttons: [],
+      postUrl: postUrl.toString(),
     };
 
-    return NextResponse.json(frameResponse);
+    // Check if the user is an admin
+    let isAdmin = false;
+    if (fid) {
+      const adminRecord = await prisma.admin.findFirst({
+        where: {
+          fid: parseInt(fid.toString()),
+          isActive: true,
+        },
+      });
+
+      isAdmin = !!adminRecord;
+    }
+
+    // If the user is an admin, add the admin button
+    if (isAdmin) {
+      buttons.push({
+        index: BUTTON_TYPES.ADMIN,
+        label: '⚙️ Admin',
+        action: 'post_redirect',
+      });
+    }
+
+    // Extract just the button data needed for the response
+    // and maintain explicit index order
+    frameData.buttons = buttons
+      .sort((a, b) => a.index - b.index)
+      .map(({ label, action }) => ({ label, action }));
+
+    // Return the frame HTML as a NextResponse
+    return new NextResponse(JSON.stringify(frameData), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   } catch (error) {
-    console.error('Error processing frame message:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error processing frame request:', error);
+
+    return new NextResponse(
+      JSON.stringify({
+        message: 'Error processing request',
+        image: {
+          url: new URL('/api/og', new URL(req.url)).toString(),
+          aspectRatio: '1.91:1',
+        },
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }
 }

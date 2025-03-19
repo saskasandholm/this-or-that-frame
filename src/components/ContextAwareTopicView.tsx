@@ -38,23 +38,19 @@ interface TopicViewProps {
   userVote?: 'A' | 'B' | null;
   isLoading?: boolean;
   onVote: (option: 'A' | 'B') => void;
+  hasVoted: boolean;
+  showDidYouKnow?: boolean;
+  showDirectChallenge?: boolean;
+  isRareOpinion?: boolean;
+  isHighlyContested?: boolean;
+  onTryAgain?: () => void;
+  error?: string | null;
 }
 
 /**
  * A context-aware component that renders different views based on the frame launch context
  */
-const ContextAwareTopicView: React.FC<TopicViewProps> = ({
-  topicId,
-  topicTitle,
-  optionA,
-  optionB,
-  imageA,
-  imageB,
-  results,
-  userVote,
-  isLoading = false,
-  onVote,
-}) => {
+const ContextAwareTopicView: React.FC<TopicViewProps> = props => {
   const {
     launchSource,
     streakReminder,
@@ -73,7 +69,6 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
 
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [hasVoted, setHasVoted] = useState(false);
 
   // Track initial view
   useEffect(() => {
@@ -91,17 +86,17 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
 
   // Show save prompt at appropriate times
   useEffect(() => {
-    if (shouldShowPrompt && userVote && !isLoading) {
+    if (shouldShowPrompt && props.userVote && !props.isLoading) {
       setShowSavePrompt(true);
       if (markPromptAsShown) {
         markPromptAsShown();
       }
     }
-  }, [shouldShowPrompt, userVote, isLoading, markPromptAsShown]);
+  }, [shouldShowPrompt, props.userVote, props.isLoading, markPromptAsShown]);
 
   // Handle showing confetti when results are received
   useEffect(() => {
-    if (results && !showConfetti && userVote) {
+    if (props.results && !showConfetti && props.userVote) {
       setShowConfetti(true);
       try {
         AudioService.play('success');
@@ -116,17 +111,17 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
 
       return () => clearTimeout(timer);
     }
-  }, [results, userVote, showConfetti]);
+  }, [props.results, props.userVote, showConfetti]);
 
   // Set hasVoted if userVote is provided
   useEffect(() => {
-    if (userVote) {
-      setHasVoted(true);
+    if (props.userVote) {
+      props.hasVoted = true;
     }
-  }, [userVote]);
+  }, [props.userVote]);
 
   // Render loading state
-  if (isLoading) {
+  if (props.isLoading) {
     return <LoadingResults message="Processing your vote..." />;
   }
 
@@ -190,16 +185,17 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
         </motion.div>
 
         <StandardTopicView
-          topicId={topicId}
-          topicTitle={topicTitle}
-          optionA={optionA}
-          optionB={optionB}
-          imageA={imageA}
-          imageB={imageB}
-          results={results}
-          userVote={userVote}
-          onVote={onVote}
+          topicId={props.topicId}
+          topicTitle={props.topicTitle}
+          optionA={props.optionA}
+          optionB={props.optionB}
+          imageA={props.imageA}
+          imageB={props.imageB}
+          results={props.results}
+          userVote={props.userVote}
+          onVote={props.onVote}
           highlightCTA={true}
+          hasVoted={props.hasVoted}
         />
       </div>
     );
@@ -227,15 +223,16 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
         </motion.div>
 
         <StandardTopicView
-          topicId={topicId}
-          topicTitle={topicTitle}
-          optionA={optionA}
-          optionB={optionB}
-          imageA={imageA}
-          imageB={imageB}
-          results={results}
-          userVote={userVote}
-          onVote={onVote}
+          topicId={props.topicId}
+          topicTitle={props.topicTitle}
+          optionA={props.optionA}
+          optionB={props.optionB}
+          imageA={props.imageA}
+          imageB={props.imageB}
+          results={props.results}
+          userVote={props.userVote}
+          onVote={props.onVote}
+          hasVoted={props.hasVoted}
         />
       </div>
     );
@@ -243,8 +240,8 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
 
   // Display a friend challenge view if launched from a share with votedOptionId
   if (launchSource === 'embed' && votedOptionId) {
-    const friendChoice = votedOptionId === 'A' ? optionA : optionB;
-    const friendImage = votedOptionId === 'A' ? imageA : imageB;
+    const friendChoice = votedOptionId === 'A' ? props.optionA : props.optionB;
+    const friendImage = votedOptionId === 'A' ? props.imageA : props.imageB;
 
     return (
       <div className="p-6 max-w-md mx-auto">
@@ -269,16 +266,17 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
         </motion.div>
 
         <StandardTopicView
-          topicId={topicId}
-          topicTitle={topicTitle}
-          optionA={optionA}
-          optionB={optionB}
-          imageA={imageA}
-          imageB={imageB}
-          results={results}
-          userVote={userVote}
-          onVote={onVote}
+          topicId={props.topicId}
+          topicTitle={props.topicTitle}
+          optionA={props.optionA}
+          optionB={props.optionB}
+          imageA={props.imageA}
+          imageB={props.imageB}
+          results={props.results}
+          userVote={props.userVote}
+          onVote={props.onVote}
           highlightCTA={true}
+          hasVoted={props.hasVoted}
         />
       </div>
     );
@@ -299,28 +297,29 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
               <div className="text-3xl font-bold">
                 {friendVotes.filter(v => v.choice === 'A').length}
               </div>
-              <div className="text-sm">chose {optionA}</div>
+              <div className="text-sm">chose {props.optionA}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold">
                 {friendVotes.filter(v => v.choice === 'B').length}
               </div>
-              <div className="text-sm">chose {optionB}</div>
+              <div className="text-sm">chose {props.optionB}</div>
             </div>
           </div>
           <p className="text-sm opacity-80">What's your choice?</p>
         </motion.div>
 
         <StandardTopicView
-          topicId={topicId}
-          topicTitle={topicTitle}
-          optionA={optionA}
-          optionB={optionB}
-          imageA={imageA}
-          imageB={imageB}
-          results={results}
-          userVote={userVote}
-          onVote={onVote}
+          topicId={props.topicId}
+          topicTitle={props.topicTitle}
+          optionA={props.optionA}
+          optionB={props.optionB}
+          imageA={props.imageA}
+          imageB={props.imageB}
+          results={props.results}
+          userVote={props.userVote}
+          onVote={props.onVote}
+          hasVoted={props.hasVoted}
         />
       </div>
     );
@@ -328,7 +327,48 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
 
   // Show save prompt if needed
   if (showSavePrompt) {
-    return <FrameSavePrompt topicId={topicId} topicTitle={topicTitle} />;
+    return <FrameSavePrompt topicId={props.topicId} topicTitle={props.topicTitle} />;
+  }
+
+  // Render error message when error occurs
+  if (props.error) {
+    return (
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 my-4">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error occurred</h3>
+            <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+              <p>{props.error}</p>
+            </div>
+            {props.onTryAgain && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={props.onTryAgain}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Default standard view for all other cases
@@ -337,42 +377,42 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
       {showConfetti && <Confetti active={true} />}
 
       <div className="p-6">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">{topicTitle}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">{props.topicTitle}</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          ID: {topicId} • {launchSource === 'global' ? 'Viewing in Frame' : 'Viewing on Web'}
+          ID: {props.topicId} • {launchSource === 'global' ? 'Viewing in Frame' : 'Viewing on Web'}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Option A */}
           <div
-            className={`relative rounded-lg overflow-hidden border-2 ${userVote === 'A' ? 'border-blue-500' : 'border-transparent'}`}
+            className={`relative rounded-lg overflow-hidden border-2 ${props.userVote === 'A' ? 'border-blue-500' : 'border-transparent'}`}
           >
-            {imageA && (
+            {props.imageA && (
               <div className="relative h-48 w-full">
-                <Image src={imageA} alt={optionA} fill style={{ objectFit: 'cover' }} />
+                <Image src={props.imageA} alt={props.optionA} fill style={{ objectFit: 'cover' }} />
               </div>
             )}
             <div className="p-4">
-              <h3 className="text-xl font-semibold">{optionA}</h3>
-              {results && (
+              <h3 className="text-xl font-semibold">{props.optionA}</h3>
+              {props.results && (
                 <div className="mt-2">
                   <div className="bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                     <motion.div
                       className="bg-blue-500 h-2"
                       initial={{ width: 0 }}
-                      animate={{ width: `${results.percentA}%` }}
+                      animate={{ width: `${props.results.percentA}%` }}
                       transition={{ duration: 1 }}
                     />
                   </div>
-                  <p className="text-sm mt-1 font-medium">{results.percentA}%</p>
+                  <p className="text-sm mt-1 font-medium">{props.results.percentA}%</p>
                 </div>
               )}
-              {!hasVoted && (
+              {!props.hasVoted && (
                 <button
-                  onClick={() => onVote('A')}
+                  onClick={() => props.onVote('A')}
                   className="mt-4 w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
                 >
-                  Vote {optionA}
+                  Vote {props.optionA}
                 </button>
               )}
             </div>
@@ -380,70 +420,85 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = ({
 
           {/* Option B */}
           <div
-            className={`relative rounded-lg overflow-hidden border-2 ${userVote === 'B' ? 'border-blue-500' : 'border-transparent'}`}
+            className={`relative rounded-lg overflow-hidden border-2 ${props.userVote === 'B' ? 'border-blue-500' : 'border-transparent'}`}
           >
-            {imageB && (
+            {props.imageB && (
               <div className="relative h-48 w-full">
-                <Image src={imageB} alt={optionB} fill style={{ objectFit: 'cover' }} />
+                <Image src={props.imageB} alt={props.optionB} fill style={{ objectFit: 'cover' }} />
               </div>
             )}
             <div className="p-4">
-              <h3 className="text-xl font-semibold">{optionB}</h3>
-              {results && (
+              <h3 className="text-xl font-semibold">{props.optionB}</h3>
+              {props.results && (
                 <div className="mt-2">
                   <div className="bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                     <motion.div
                       className="bg-red-500 h-2"
                       initial={{ width: 0 }}
-                      animate={{ width: `${results.percentB}%` }}
+                      animate={{ width: `${props.results.percentB}%` }}
                       transition={{ duration: 1 }}
                     />
                   </div>
-                  <p className="text-sm mt-1 font-medium">{results.percentB}%</p>
+                  <p className="text-sm mt-1 font-medium">{props.results.percentB}%</p>
                 </div>
               )}
-              {!hasVoted && (
+              {!props.hasVoted && (
                 <button
-                  onClick={() => onVote('B')}
+                  onClick={() => props.onVote('B')}
                   className="mt-4 w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
                 >
-                  Vote {optionB}
+                  Vote {props.optionB}
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {results && (
+        {props.results && (
           <div className="mt-6 text-center">
-            <p className="text-lg">{results.totalVotes} total votes</p>
+            <p className="text-lg">{props.results.totalVotes} total votes</p>
           </div>
         )}
 
         {/* Friends context - using sample data for demo, in a real app this would come from backend */}
-        {(userVote === 'A' || userVote === 'B') && (
+        {(props.userVote === 'A' || props.userVote === 'B') && (
           <FriendsVotedContext
             friends={[
-              { fid: '1', username: 'alice', avatar: '/images/avatars/alice.jpg', choice: 'A' },
-              { fid: '2', username: 'bob', avatar: '/images/avatars/bob.jpg', choice: 'B' },
+              {
+                fid: '1',
+                username: 'alice',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alice',
+                choice: 'A',
+              },
+              {
+                fid: '2',
+                username: 'bob',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=bob',
+                choice: 'B',
+              },
               {
                 fid: '3',
                 username: 'charlie',
-                avatar: '/images/avatars/charlie.jpg',
-                choice: userVote as 'A' | 'B',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=charlie',
+                choice: props.userVote as 'A' | 'B',
               },
             ]}
-            userChoice={userVote as 'A' | 'B'}
-            optionA={optionA}
-            optionB={optionB}
-            _topicTitle={topicTitle}
-            _topicId={topicId || ''}
-            _userVote={userVote as 'A' | 'B'}
+            userChoice={props.userVote as 'A' | 'B'}
+            optionA={props.optionA}
+            optionB={props.optionB}
+            _topicTitle={props.topicTitle}
+            _topicId={props.topicId || ''}
+            _userVote={props.userVote as 'A' | 'B'}
             _friendsAgreeing={2}
             _friendsDisagreeing={1}
             _totalFriendsVoted={3}
           />
         )}
+
+        <DidYouKnow
+          facts={['Did you know? These topics help us understand community preferences better.']}
+          className="mt-6"
+        />
       </div>
     </div>
   );
@@ -466,6 +521,7 @@ const StandardTopicView: React.FC<StandardTopicViewProps> = ({
   userVote,
   onVote,
   highlightCTA = false,
+  hasVoted,
 }) => {
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
@@ -554,15 +610,6 @@ const StandardTopicView: React.FC<StandardTopicViewProps> = ({
           <div className="text-center text-gray-600 dark:text-gray-400 mb-4">
             Total votes: {results.totalVotes}
           </div>
-
-          {/* Did You Know fact */}
-          <DidYouKnow
-            isRareOpinion={userVote === 'A' ? results.percentA < 30 : results.percentB < 30}
-            isHighlyContested={Math.abs(results.percentA - results.percentB) < 10}
-            _topicTitle={topicTitle}
-            _userChoice={userVote === 'A' ? 'A' : 'B'}
-            _onClose={() => {}}
-          />
 
           <div className="mt-6 flex flex-col space-y-3">
             {/* Challenge Friends button */}

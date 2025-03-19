@@ -7,7 +7,205 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security Improvements
+
+- **Fixed SQL Injection Vulnerability**:
+
+  - Removed unsafe raw SQL queries using `$executeRawUnsafe` in vote processing
+  - Replaced with safe Prisma methods using `update` with `increment` operation
+  - Implemented proper query parameter handling to prevent injection attacks
+
+- **Enhanced Input Validation**:
+
+  - Added comprehensive input validation for frame message data
+  - Implemented validation for buttonIndex and fid parameters
+  - Added proper error handling for invalid input formats
+
+- **Improved Error Handling**:
+  - Added specific error handling for image loading failures in frame images
+  - Implemented fallback mechanisms for unavailable images
+  - Enhanced error responses with more specific error messages
+
+### Implemented Improvements
+
+- **Fixed Race Condition in Voting**:
+
+  - Implemented database transactions to ensure data consistency during votes
+  - Fixed potential inconsistencies between vote counts and user streak tracking
+  - Improved streak calculation logic to handle edge cases
+
+- **Updated Farcaster SDK Integration**:
+
+  - Fixed `addFrame` implementation to correctly handle the latest SDK response format
+  - Enhanced notification token handling in frame save functionality
+  - Updated type definitions to match current Frame SDK version
+
+- **Optimized Database Operations**:
+
+  - Improved achievement checking to reduce unnecessary database queries
+  - Consolidated achievement granting into a single transaction
+  - Enhanced user streak tracking with more efficient queries
+
+- **Consistent Button Handling**:
+
+  - Implemented consistent button indices using BUTTON_TYPES constants
+  - Fixed potential issues with button index mismatches between routes
+  - Enhanced maintainability with proper button type definitions
+
+- **Fixed Admin Page Parameter Handling**:
+  - Resolved "Route '/admin/[fid]' used `params.fid`. `params` should be awaited" error by properly awaiting params
+  - Added input validation for the fid parameter to prevent invalid ID issues
+  - Enhanced error UI for displaying access denied and invalid ID errors
+- **Enhanced Avatar Image Support**:
+
+  - Configured Next.js to support SVG images from DiceBear API
+  - Added content security policy for SVG images
+  - Added specific remotePattern for the DiceBear API hostname and pathname
+
+- **UI Loading Experience**:
+
+  - Added skeleton loaders for content during data fetching
+  - Improved loading states and animations across the application
+  - Enhanced user feedback during async operations
+
+- **Enhanced User Streak Tracking**:
+
+  - Improved logic for detecting voting streaks
+  - Added granular tracking for consecutive days
+  - Fixed edge cases for timezone differences
+  - Enhanced performance of streak calculations
+
+- **Fixed Linter Errors**:
+  - Resolved type safety issues in error handling code
+  - Fixed input validation implementation for API endpoints
+  - Corrected error type casting in catch blocks
+  - Enhanced codebase cleanliness and maintainability
+
+### Recent Updates
+
+- **Admin Page and Image Handling Improvements (April 2025)**:
+
+  - Fixed Admin page parameter handling with proper Promise resolution
+  - Added proper SVG support for avatar images from DiceBear API
+  - Enhanced error handling in the Admin dashboard
+  - Fixed DOM nesting issues in components
+  - Improved image handling with fallbacks and optimizations
+
+- **Advanced Component Integration (March 2025)**:
+
+  - Replaced basic VotingInterface with feature-rich ContextAwareTopicView
+  - Added FirstTimeUserExperience for new user onboarding
+  - Integrated DidYouKnow facts that appear after voting
+  - Added DirectChallenge component for social sharing
+  - Implemented FrameSavePrompt for better frame:add experience
+
+- **Technical Improvements and Bug Fixes**:
+  - Fixed PrismaClient browser environment error in edge runtime
+  - Created edge-compatible API route for serving topic data
+  - Improved error handling in frame image generation
+  - Fixed type compatibility issues in ClientPage and related components
+
+## [0.5.0] - 2025-04-25
+
+### Admin Improvements and Bug Fixes
+
+- **Fixed Admin Page Parameter Handling**:
+
+  - Resolved the error "Route '/admin/[fid]' used `params.fid`. `params` should be awaited before using its properties"
+  - Updated AdminPage component to properly await dynamic route parameters
+  - Added input validation for fid parameter to prevent invalid ID issues
+  - Enhanced error UI for displaying access denied and invalid ID errors
+
+- **Enhanced Avatar Image Support**:
+
+  - Configured Next.js to support SVG images from DiceBear API
+  - Added content security policy for SVG images
+  - Implemented fallback mechanism for failed avatar image loads
+  - Replaced static avatar images with dynamically generated ones
+
+- **Documentation Updates**:
+
+  - Added comprehensive DOM nesting guidelines to implementation notes
+  - Updated troubleshooting guide with image handling solutions
+  - Enhanced README with component usage best practices
+  - Added prioritized roadmap for future improvements
+
+- **Development Experience**:
+  - Added clear error messages for common development issues
+  - Enhanced logging for API routes and database operations
+  - Improved error recovery for development server
+
+## [0.4.0] - 2025-04-15
+
+### Critical Fixes
+
+- **Fixed Admin Page Parameter Handling**:
+
+  - Resolved the error "Route '/admin/[fid]' used `params.fid`. `params` should be awaited before using its properties"
+  - Updated AdminPage component to properly await dynamic route parameters
+  - Added proper type handling for dynamic route parameters
+  - Enhanced error handling when admin user not found
+
+- **PrismaClient Browser Error Resolution**:
+
+  - Fixed the error "PrismaClient is unable to run in this browser environment" in frame image generation
+  - Created an API-only solution for database access in edge functions
+  - Implemented topic data cache to improve performance
+  - Added fallback mechanism for when database connection fails
+
+- **Type Compatibility Fixes**:
+  - Resolved type error in ClientPage related to DirectChallenge component
+  - Fixed issue where null values weren't assignable to "A" | "B" | undefined
+  - Improved overall type safety across components
+  - Added proper null checks for optional parameters
+
+### UI Improvements
+
+- **Enhanced Loading States**:
+
+  - Added fine-grained loading indicators for vote actions
+  - Implemented skeleton loaders for content that might take time to load
+  - Added smooth transitions between loading and loaded states
+  - Improved feedback during network operations
+
+- **Mobile Responsiveness**:
+
+  - Enhanced layout adjustments for small screens
+  - Improved touch targets for better mobile usability
+  - Fixed overflow issues on narrow viewports
+  - Optimized font sizes and spacing for mobile devices
+
+- **Accessibility Enhancements**:
+  - Improved color contrast ratios throughout the application
+  - Enhanced keyboard navigation and focus states
+  - Added explanatory tooltips for cryptocurrency topics
+  - Implemented proper ARIA attributes for interactive elements
+
+### API Improvements
+
+- **Edge-Compatible API Routes**:
+
+  - Created dedicated API endpoint for safely retrieving current topic data
+  - Implemented proper error handling with user-friendly fallbacks
+  - Added caching headers to improve performance
+  - Created API route for post-vote analytics
+
+- **Performance Optimizations**:
+  - Improved image loading strategy with Next.js Image optimizations
+  - Reduced unnecessary re-renders in client components
+  - Enhanced API response times with better caching
+  - Implemented better error recovery strategies
+
 ### Framework Updates
+
+- Updated to Next.js 15.2:
+
+  - Fixed API route type compatibility issues with the new Next.js 15.2 type system
+  - Ensured proper type definitions for route handlers with dynamic parameters
+  - Optimized application to leverage redesigned error UI and improved stack traces
+  - Configured for streaming metadata to improve initial page load performance
+  - Addressed component type issues in ContextAwareTopicView and related components
+  - Updated documentation with Next.js 15.2 compatibility notes
 
 - Updated to Tailwind CSS v4:
 

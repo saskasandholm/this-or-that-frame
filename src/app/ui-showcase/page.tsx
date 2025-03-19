@@ -22,243 +22,201 @@ import {
 } from '@/components/ui/dialog';
 import TestComponent from '@/components/TestComponent';
 import SplashScreen from '@/components/SplashScreen';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import VotingInterface from '@/components/VotingInterface';
 
 export default function UIShowcasePage() {
   const [showSplash, setShowSplash] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<'A' | 'B' | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleVote = (option: 'A' | 'B') => {
+    setIsLoading(true);
+
+    // Simulate API response
+    setTimeout(() => {
+      setSelectedOption(option);
+      setHasVoted(true);
+      setIsLoading(false);
+    }, 1200);
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-      <div className="max-w-6xl mx-auto space-y-12">
-        <header className="text-center pb-10 border-b border-gray-800">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-transparent bg-clip-text animate-gradient mb-4">
-            UI Component Showcase
-          </h1>
-          <p className="text-xl text-gray-300 max-w-xl mx-auto">
-            A complete showcase of all shadcn/ui components with enhanced styling
-          </p>
-        </header>
+    <div className="container mx-auto px-4 py-8 pb-24">
+      <div className="max-w-4xl mx-auto mb-12 text-center">
+        <motion.h1
+          className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent bg-size-200 animate-gradient"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          UI Showcase
+        </motion.h1>
+        <p className="text-muted-foreground max-w-xl mx-auto">
+          This page demonstrates all the UI components and design elements used in the This or That
+          application.
+        </p>
+        <div className="mt-6">
+          <Button variant="outline" asChild>
+            <Link href="/">Back to home</Link>
+          </Button>
+        </div>
+      </div>
 
-        {/* Button Section */}
-        <section className="space-y-8" id="buttons">
-          <h2 className="text-3xl font-bold text-white">Buttons</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Button Variants</CardTitle>
-                <CardDescription>Different button styles for various purposes</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                <Button variant="default">Default</Button>
-                <Button variant="destructive">Destructive</Button>
-                <Button variant="outline">Outline</Button>
-                <Button variant="secondary">Secondary</Button>
-                <Button variant="ghost">Ghost</Button>
-                <Button variant="link">Link</Button>
-                <Button variant="gradient" className="col-span-2">
-                  Gradient
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Button Sizes</CardTitle>
-                <CardDescription>Different button sizes for various contexts</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <Button size="sm">Small</Button>
-                <Button size="default">Default</Button>
-                <Button size="lg">Large</Button>
-                <Button size="xl">Extra Large</Button>
-                <Button size="icon">
-                  <span>🔍</span>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Button States</CardTitle>
-                <CardDescription>Various button interaction states</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <Button>Normal</Button>
-                <Button disabled>Disabled</Button>
-                <Button className="relative group overflow-hidden">
-                  <span className="relative z-10">Hover Effect</span>
-                  <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                </Button>
-                <Button className="animate-pulse-gentle">Animated</Button>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Card Section */}
-        <section className="space-y-8" id="cards">
-          <h2 className="text-3xl font-bold text-white">Cards</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Simple Card</CardTitle>
-                <CardDescription>Basic card with header and content</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>This is a simple card with basic styling and no footer.</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-b from-card/80 to-card">
-              <CardHeader>
-                <CardTitle>Gradient Card</CardTitle>
-                <CardDescription>Card with gradient background effect</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>This card has a subtle gradient background for enhanced visuals.</p>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">
-                  Action
-                </Button>
-              </CardFooter>
-            </Card>
-
-            <Card className="border-primary/20 shadow-lg shadow-primary/10">
-              <CardHeader>
-                <CardTitle className="bg-gradient-to-r from-primary-300 to-primary-500 bg-clip-text text-transparent">
-                  Enhanced Card
-                </CardTitle>
-                <CardDescription>Card with advanced styling</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>This card has custom border, shadow and gradient text.</p>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" size="sm">
-                  Cancel
-                </Button>
-                <Button size="sm">Submit</Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </section>
-
-        {/* Input Section */}
-        <section className="space-y-8" id="inputs">
-          <h2 className="text-3xl font-bold text-white">Inputs</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Inputs</CardTitle>
-                <CardDescription>Standard input components</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Input placeholder="Standard input" />
-                <Input placeholder="Disabled input" disabled />
-                <Input placeholder="Email input" type="email" />
-                <Input placeholder="Password input" type="password" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Styled Inputs</CardTitle>
-                <CardDescription>Custom styled input components</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Input placeholder="Border glow on focus" className="focus:animate-glow" />
-                <Input placeholder="With icon" className="pl-9 relative" />
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    $
-                  </span>
-                  <Input placeholder="Amount" className="pl-8" />
-                </div>
-                <Input placeholder="Custom style" className="bg-primary/5 border-primary/20" />
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Dialog Section */}
-        <section className="space-y-8" id="dialogs">
-          <h2 className="text-3xl font-bold text-white">Dialogs</h2>
-          <Card>
-            <CardHeader>
-              <CardTitle>Dialog Examples</CardTitle>
-              <CardDescription>Modal dialogs for various use cases</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline">Open Basic Dialog</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Basic Dialog</DialogTitle>
-                    <DialogDescription>
-                      This is a basic dialog with standard styling.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <p className="py-4">Dialog content goes here.</p>
-                  <DialogFooter>
-                    <Button>Close</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>Controlled Dialog</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Controlled Dialog</DialogTitle>
-                    <DialogDescription>
-                      This dialog's state is controlled by React state.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="py-4">
-                    <p>This dialog uses state to control opening and closing.</p>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={() => setDialogOpen(false)}>Confirm</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Button variant="secondary" onClick={() => setShowSplash(true)}>
-                Show Splash Screen
-              </Button>
-            </CardContent>
-          </Card>
-
-          {showSplash && (
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50">
-              <div className="max-w-md w-full p-6">
-                <SplashScreen onComplete={() => setShowSplash(false)} minDisplayTime={3000} />
-                <div className="mt-4 text-center">
-                  <Button variant="outline" onClick={() => setShowSplash(false)}>
-                    Skip Animation
-                  </Button>
-                </div>
-              </div>
+      <div className="space-y-16 mb-12">
+        <section>
+          <h2 className="text-2xl font-bold mb-6 border-b pb-2">Voting Interface</h2>
+          <div className="grid grid-cols-1 gap-8">
+            <div>
+              <h3 className="text-xl font-medium mb-4">Interactive Voting Card</h3>
+              <VotingInterface
+                topic={{
+                  id: 'sample-1',
+                  title: 'Coffee vs Tea',
+                  optionA: 'Coffee',
+                  optionB: 'Tea',
+                  imageA: 'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?q=80&w=400',
+                  imageB: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=400',
+                  votesA: 127,
+                  votesB: 89,
+                }}
+                onVote={handleVote}
+                hasVoted={hasVoted}
+                selectedOption={selectedOption || undefined}
+                isLoading={isLoading}
+              />
             </div>
-          )}
+
+            <div>
+              <h3 className="text-xl font-medium mb-4">Loading State</h3>
+              <VotingInterface
+                topic={{
+                  id: 'sample-2',
+                  title: 'Dogs vs Cats',
+                  optionA: 'Dogs',
+                  optionB: 'Cats',
+                  votesA: 0,
+                  votesB: 0,
+                }}
+                onVote={() => {}}
+                hasVoted={false}
+                isLoading={true}
+              />
+            </div>
+          </div>
         </section>
 
-        {/* Test Component Section */}
-        <section className="space-y-8" id="test-component">
-          <h2 className="text-3xl font-bold text-white">Test Component</h2>
-          <div className="max-w-md mx-auto">
-            <TestComponent />
+        <section>
+          <h2 className="text-2xl font-bold mb-6 border-b pb-2">Core Components</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-xl font-medium mb-4">Buttons</h3>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Button Variants</CardTitle>
+                  <CardDescription>Different styles for different contexts</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-3">
+                    <Button variant="default">Default</Button>
+                    <Button variant="secondary">Secondary</Button>
+                    <Button variant="outline">Outline</Button>
+                    <Button variant="ghost">Ghost</Button>
+                    <Button variant="link">Link</Button>
+                    <Button variant="destructive">Destructive</Button>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button size="lg">Large</Button>
+                    <Button size="default">Default</Button>
+                    <Button size="sm">Small</Button>
+                    <Button size="icon" className="size-10">
+                      <span>🔍</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-medium mb-4">Card Components</h3>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Card Title</CardTitle>
+                  <CardDescription>Card description goes here</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>Card content with body text explaining the purpose of this card.</p>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline">Cancel</Button>
+                  <Button>Submit</Button>
+                </CardFooter>
+              </Card>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-medium mb-4">Progress & Loading</h3>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progress Indicators</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">Default Progress</p>
+                    <Progress value={60} className="w-full" />
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">Small Progress</p>
+                    <Progress value={30} className="w-full h-1" />
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">Skeletons</p>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-medium mb-4">Gradients & Effects</h3>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+                    Gradient Text
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 border rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 backdrop-blur-sm">
+                    Subtle gradient background
+                  </div>
+                  <div className="p-4 border rounded-lg bg-gradient-to-br from-primary/80 to-secondary/80 text-white">
+                    Strong gradient background
+                  </div>
+                  <div className="h-12 bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 rounded-md bg-size-200 animate-gradient" />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </section>
       </div>
-    </main>
+
+      <div className="text-center mt-12">
+        <p className="text-muted-foreground mb-4">
+          Return to the main app to see these components in action
+        </p>
+        <Button asChild>
+          <Link href="/">Back to Home</Link>
+        </Button>
+      </div>
+    </div>
   );
 }

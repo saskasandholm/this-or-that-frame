@@ -122,8 +122,9 @@ export async function updateUserStreak(fid: string | number): Promise<void> {
         });
       }
     }
-  } catch (error) {
-    console.error('Error updating user streak:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error updating user streak:', errorMessage);
   }
 }
 
@@ -182,8 +183,9 @@ export async function checkForRareOpinion(
     }
 
     return isRare;
-  } catch (error) {
-    console.error('Error checking for rare opinion:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error checking for rare opinion:', errorMessage);
     return false;
   }
 }
@@ -220,8 +222,9 @@ export async function isHighlyContested(topicId: number | string): Promise<boole
     const isContested = difference <= 10;
 
     return isContested;
-  } catch (error) {
-    console.error('Error checking if topic is highly contested:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error checking for highly contested topic:', errorMessage);
     return false;
   }
 }
@@ -251,17 +254,16 @@ export async function isAdmin(
     }
 
     return true;
-  } catch (error) {
-    console.error('Error checking admin status:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error checking admin status:', errorMessage);
     return false;
   }
 }
 
 /**
- * Creates the first admin if none exists
- * This should be called during app initialization
- * @param fid The Farcaster ID to set as the first admin
- * @returns Promise<void>
+ * Initialize the first admin if no admins exist
+ * @param fid Farcaster ID of the first admin
  */
 export async function initializeFirstAdmin(fid: number): Promise<void> {
   try {
@@ -279,8 +281,10 @@ export async function initializeFirstAdmin(fid: number): Promise<void> {
       });
       console.log(`Initialized first admin with FID ${fid}`);
     }
-  } catch (error) {
-    console.error('Error initializing first admin:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error initializing first admin:', errorMessage);
+    // Don't throw to avoid disrupting the admin check flow
   }
 }
 

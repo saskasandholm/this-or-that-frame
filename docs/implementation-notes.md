@@ -135,6 +135,7 @@ In production, ensure these are properly set with appropriate values.
 
 - **v1.0.0** (Initial Documentation): Created implementation notes for Frame Manifest and server-side rendering
 - **v1.0.1** (Build Fixes): Fixed Prisma client integration issues and data model inconsistencies
+- **v1.0.2** (UI Fixes): Fixed DOM nesting issues in components and resolved missing avatar images
 
 ## Prisma Client Integration Fixes
 
@@ -161,3 +162,78 @@ During the build process, several issues were identified related to Prisma clien
    - First-time user experience tracking uses the UserStreak model
 
 These changes ensure that the application code properly reflects the database schema defined in `prisma/schema.prisma` and prevents type errors during build.
+
+## UI Component Improvements
+
+### DOM Nesting Structure
+
+When working with shadcn/ui components, we've identified an important consideration regarding the DOM structure:
+
+- `CardDescription` components render as `<p>` elements in HTML
+- `Badge` components render as `<div>` elements in HTML
+
+This creates a potential issue since in HTML, paragraph elements (`<p>`) cannot contain block-level elements like `<div>`. To fix this issue, we've restructured our component hierarchy to ensure proper HTML nesting:
+
+```tsx
+// Before: Incorrect nesting
+<CardHeader>
+  <CardTitle>Topic Title</CardTitle>
+  <CardDescription className="flex justify-between">
+    <span>Total votes: 12,345</span>
+    <Badge>Closed</Badge> // Causes HTML validation error
+  </CardDescription>
+</CardHeader>
+
+// After: Correct nesting
+<CardHeader>
+  <div className="flex justify-between items-center mb-1">
+    <CardTitle>Topic Title</CardTitle>
+    <Badge>Closed</Badge>
+  </div>
+  <CardDescription>
+    Total votes: 12,345
+  </CardDescription>
+</CardHeader>
+```
+
+### Image Resources Management
+
+To handle avatar images in the application, we've implemented two strategies:
+
+1. **Dynamic Avatar Generation**: Instead of using static image files that might be missing, we've switched to using the DiceBear API for generating consistent avatar images:
+
+```tsx
+// Before
+const friendsMock = [
+  { fid: '1', username: 'alice', avatar: '/images/avatars/alice.jpg', choice: 'A' },
+  // other friends
+];
+
+// After
+const friendsMock = [
+  {
+    fid: '1',
+    username: 'alice',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alice',
+    choice: 'A',
+  },
+  // other friends
+];
+```
+
+2. **Fallback Images**: For cases where an image might not be available, we've added fallback mechanisms:
+
+```tsx
+<Image
+  src={avatar || '/images/default-avatar.png'}
+  alt={username}
+  fill
+  sizes="24px"
+  className="object-cover"
+  onError={e => {
+    e.currentTarget.src = '/images/default-avatar.png';
+  }}
+/>
+```
+
+These improvements enhance the application's resilience to missing resources and ensure proper HTML structure, preventing hydration errors and improving accessibility.

@@ -1,141 +1,228 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import sdk from '@farcaster/frame-sdk';
 
-/**
- * Interface defining the state and methods returned by the useFrameDiscovery hook
- * @interface FrameDiscoveryState
- */
-interface FrameDiscoveryState {
-  /** Whether to show the frame save prompt based on interaction conditions */
+export interface FrameDiscoveryState {
+  isSDKLoaded: boolean;
   shouldShowPrompt: boolean;
-  /** Count of user interactions with the frame */
   interactionCount: number;
-  /** Function to track user interactions with the frame */
+  promptShown: boolean;
   trackInteraction: (type: string) => void;
-  /** Function to mark the save prompt as having been shown */
   markPromptAsShown: () => void;
-  /** Function to save the frame to the user's collection */
   saveFrame: () => Promise<boolean>;
 }
 
 /**
- * Custom hook for managing frame discovery features
+ * Custom hook for Frame discovery features including interaction tracking,
+ * frame saving functionality, and prompt management.
  *
- * This hook helps track user interactions, determine when to show save prompts,
- * and manage the frame saving process. It uses localStorage to persist state
- * across sessions.
- *
- * @returns {FrameDiscoveryState} Object containing state and methods for frame discovery
- *
- * @example
- * ```tsx
- * const { shouldShowPrompt, trackInteraction, saveFrame } = useFrameDiscovery();
- *
- * // Track when user interacts with a feature
- * const handleButtonClick = () => {
- *   trackInteraction('button_click');
- *   // other logic...
- * };
- *
- * // Show save prompt conditionally
- * useEffect(() => {
- *   if (shouldShowPrompt) {
- *     // Show your custom prompt UI
- *   }
- * }, [shouldShowPrompt]);
- * ```
+ * This manages the user's interaction with the frame and determines
+ * when to show save prompts.
  */
 export function useFrameDiscovery(): FrameDiscoveryState {
-  const [interactions, setInteractions] = useState<number>(0);
-  const [hasShownPrompt, setHasShownPrompt] = useState<boolean>(false);
-  const [promptShowed, setPromptShowed] = useState<boolean>(false);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
+  // SDK loading state
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
 
-  // Load state from localStorage on mount
+  // Track number of interactions with the frame
+  const [interactionCount, setInteractionCount] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('frameInteractionCount');
+      return stored ? parseInt(stored, 10) : 0;
+    }
+    return 0;
+  });
+
+  // Whether we've already shown the save prompt
+  const [promptShown, setPromptShown] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('frameSavePromptShown') === 'true';
+    }
+    return false;
+  });
+
+  // Initialize and load SDK
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    const loadSDK = async () => {
+      try {
+        // Wait for SDK context to be ready
+        await sdk.context;
 
-    try {
-      const storedHasShownPrompt = localStorage.getItem('frameDiscovery_hasShownPrompt');
-      const storedIsSaved = localStorage.getItem('frameDiscovery_isSaved');
+        // Signal ready to the parent app
+        sdk.actions.ready();
 
-      if (storedHasShownPrompt) {
-        setHasShownPrompt(storedHasShownPrompt === 'true');
+        console.debug('Frame SDK loaded successfully');
+        setIsSDKLoaded(true);
+      } catch (error) {
+        console.error('Error initializing Frame SDK:', error);
+        // Still mark as loaded to allow fallback UI to render
+        setIsSDKLoaded(true);
+      }
+    };
+
+    if (!isSDKLoaded) {
+      loadSDK();
+    }
+  }, [isSDKLoaded]);
+
+  // Listen for SDK visibility changes
+  useEffect(() => {
+    if (!isSDKLoaded) return;
+
+    const handleVisibilityChange = () => {
+      // Handle visibility state changes
+      if (document.visibilityState === 'visible') {
+        // Frame is visible again - resume any paused operations
+        console.debug('Frame is visible');
+      } else {
+        // Frame is hidden - consider pausing animations, timers, etc.
+        console.debug('Frame is hidden');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isSDKLoaded]);
+
+  // Track user interactions with the frame
+  const trackInteraction = useCallback((type: string) => {
+    setInteractionCount(prevCount => {
+      const newCount = prevCount + 1;
+      // Persist to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('frameInteractionCount', newCount.toString());
       }
 
-      if (storedIsSaved) {
-        setIsSaved(storedIsSaved === 'true');
-      }
-    } catch (error) {
-      console.error('Error accessing localStorage:', error);
-    }
+      console.debug(`Interaction tracked: ${type}, count: ${newCount}`);
+      return newCount;
+    });
   }, []);
 
-  // Save state to localStorage when it changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      localStorage.setItem('frameDiscovery_hasShownPrompt', String(hasShownPrompt));
-      localStorage.setItem('frameDiscovery_isSaved', String(isSaved));
-    } catch (error) {
-      console.error('Error saving to localStorage:', error);
-    }
-  }, [hasShownPrompt, isSaved]);
-
-  /**
-   * Tracks a user interaction with the frame
-   *
-   * @param {string} type - The type of interaction being tracked
-   */
-  const trackInteraction = useCallback((type: string = 'general') => {
-    console.log(`Tracking interaction: ${type}`);
-    setInteractions(prev => prev + 1);
-  }, []);
-
-  /**
-   * Marks the save prompt as having been shown to the user
-   * This prevents showing the prompt again in the same session
-   */
+  // Mark the save prompt as shown to prevent showing it again
   const markPromptAsShown = useCallback(() => {
-    setHasShownPrompt(true);
-    setPromptShowed(true);
+    setPromptShown(true);
+
+    // Persist to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('frameSavePromptShown', 'true');
+    }
   }, []);
 
-  // Determine if we should show the prompt
-  const shouldShowPrompt = !hasShownPrompt && !isSaved && interactions >= 2 && !promptShowed;
+  // Determine if we should show the save prompt based on interaction count
+  // and whether we've already shown it
+  const shouldShowPrompt = interactionCount >= 3 && !promptShown;
 
-  /**
-   * Attempts to save the frame to the user's collection using the Farcaster SDK
-   *
-   * @returns {Promise<boolean>} A promise that resolves to true if the frame was saved successfully, false otherwise
-   */
+  // Function to save the frame using the Farcaster SDK
   const saveFrame = useCallback(async (): Promise<boolean> => {
-    if (typeof window === 'undefined') return false;
+    if (!isSDKLoaded) {
+      console.error('Cannot save frame: SDK not loaded');
+      return false;
+    }
 
     try {
-      // Check if addFrame is supported
-      if (sdk.actions && typeof sdk.actions.addFrame === 'function') {
-        const result = await sdk.actions.addFrame();
-        if (result && 'added' in result && result.added === true) {
-          setIsSaved(true);
-          return true;
-        }
+      console.debug('Attempting to save frame...');
+
+      // Call the addFrame SDK method
+      const result = await sdk.actions.addFrame();
+
+      // Check result type to handle different SDK versions
+      if (typeof result === 'boolean') {
+        return result;
+      } else if (result && typeof result === 'object' && 'success' in result) {
+        return Boolean(result.success);
       }
+
+      // If unknown result format, log and return false
+      console.warn('Unexpected result from sdk.actions.addFrame():', result);
       return false;
     } catch (error) {
       console.error('Error saving frame:', error);
       return false;
     }
-  }, []);
+  }, [isSDKLoaded]);
 
   return {
+    isSDKLoaded,
     shouldShowPrompt,
-    interactionCount: interactions,
+    interactionCount,
+    promptShown,
     trackInteraction,
     markPromptAsShown,
     saveFrame,
   };
 }
+
+/**
+ * Helper functions for working with Frame-specific functionality
+ */
+export const FrameHelpers = {
+  // Generate a share URL for direct challenges
+  generateChallengeUrl(topicId?: string, choice?: 'A' | 'B'): string {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+    const url = new URL(baseUrl);
+
+    // Add required parameters
+    if (topicId) url.searchParams.append('topicId', topicId);
+    url.searchParams.append('challenge', 'true');
+    if (choice) url.searchParams.append('from', choice);
+
+    return url.toString();
+  },
+
+  // Format a challenge message for sharing
+  formatChallengeMessage(
+    topicTitle?: string,
+    choice?: 'A' | 'B',
+    optionA?: string,
+    optionB?: string,
+    url?: string
+  ): string {
+    // Validate and ensure we have a title
+    const safeTitle = topicTitle || 'This or That challenge';
+
+    // Create the challenge message
+    let message = '';
+
+    if (choice && optionA && optionB) {
+      // User has voted, include their choice
+      const selectedOption = choice === 'A' ? optionA : optionB;
+      message = `I chose "${selectedOption}" on "${safeTitle}". What would you choose? `;
+    } else {
+      // Generic challenge without user's choice
+      message = `Check out this "${safeTitle}" question! What would you choose? `;
+    }
+
+    // Add the URL if provided
+    if (url) {
+      message += url;
+    }
+
+    // Add hashtag
+    message += ' #ThisOrThat';
+
+    return message;
+  },
+
+  // Check if user is in a Farcaster frame context
+  isInFrameContext(): boolean {
+    // Check if we're in a frame context
+    // The sdk.context will indicate this when available
+    try {
+      return (
+        typeof window !== 'undefined' &&
+        window.location.ancestorOrigins &&
+        window.location.ancestorOrigins.length > 0 &&
+        /warpcast|farcaster/i.test(window.location.ancestorOrigins[0])
+      );
+    } catch (error) {
+      return false;
+    }
+  },
+};
+
+export default useFrameDiscovery;

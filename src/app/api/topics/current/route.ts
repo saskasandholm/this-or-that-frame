@@ -25,12 +25,7 @@ export async function GET(_request: NextRequest) {
         ],
       },
       include: {
-        category: {
-          select: {
-            name: true,
-            description: true,
-          },
-        },
+        category: true,
       },
       orderBy: {
         startDate: 'desc',
@@ -38,12 +33,12 @@ export async function GET(_request: NextRequest) {
     });
 
     if (!currentTopic) {
-      return NextResponse.json({ error: 'No active topic found' }, { status: 404 });
+      return NextResponse.json({ message: 'No active topic found' }, { status: 404 });
     }
 
     return NextResponse.json(currentTopic);
   } catch (error) {
     console.error('Error fetching current topic:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch current topic' }, { status: 500 });
   }
 }

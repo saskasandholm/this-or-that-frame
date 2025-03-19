@@ -1,208 +1,148 @@
-# This or That - Farcaster Frame
+# This or That - Farcaster Frame Application
 
-A daily choice game that reveals what the Farcaster community really thinks. Built with Next.js 15, React 19, Tailwind CSS v4, and shadcn/ui.
+A web application that presents binary choices to users, collects votes, and shows community results. Built as a Farcaster Frame with Next.js and Prisma.
 
 ## Features
 
-- Daily "This or That" choices for users to vote on
-- Real-time results showing community preferences
-- Streak tracking to reward consistent participation
-- Achievement system with badges for various accomplishments
-- First-Time User Experience (FTUE) with interactive tutorials
-- Haptic feedback for enhanced user interaction
-- Audio feedback for key interactions
-- Frame discovery helpers for easy saving
-- Optimized performance for mobile devices
-- Comprehensive error handling
-- Database integration with Prisma for persistent data
+- **Interactive Voting Interface**: Engaging UI for making binary choices
+- **Real-time Results**: View community vote distributions after participating
+- **First Time User Experience**: Guided onboarding for new users
+- **Direct Challenges**: Challenge friends to answer the same questions
+- **Educational Content**: "Did You Know" facts related to each topic
+- **Admin Dashboard**: Manage topics and monitor engagement
+- **Trending & Past Topics**: Browse popular topics and see voting history
+
+## Demo
+
+Check out the various components of the application in our demo pages:
+
+- [First Time User Experience](/demo/first-time)
+- [Did You Know Facts](/demo/did-you-know)
+- [Direct Challenge](/demo/direct-challenge)
+- [Frame Save Prompt](/demo/frame-save)
 
 ## Tech Stack
 
-This project uses the latest web technologies:
-
-- **Next.js 15**: For server-side rendering and routing
-- **React 19**: For component-based UI
-- **Tailwind CSS v4**: For utility-first styling
-- **shadcn/ui**: For high-quality UI components
-- **Prisma**: For database ORM
-- **TypeScript**: For type safety
-- **Framer Motion**: For smooth animations
+- **Framework**: Next.js 15.2
+- **Database**: SQLite with Prisma ORM
+- **Styling**: Tailwind CSS v4 with shadcn/ui components
+- **Animations**: Framer Motion
+- **Integration**: Farcaster Frame SDK
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ (preferably v20+)
+- Node.js 18.0+
 - npm or yarn
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/this-or-that-frame.git
-   cd this-or-that-frame
+   git clone https://github.com/yourusername/this-or-that.git
+   cd this-or-that
    ```
 
-2. Install dependencies (use legacy-peer-deps to handle React 19 conflicts)
+2. Install dependencies:
 
    ```bash
-   npm install --legacy-peer-deps
+   npm install
    ```
 
-3. Set up environment variables:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Then edit the `.env` file to add your specific configuration.
-
-4. Verify environment variables:
-
-   ```bash
-   npm run verify-env
-   ```
-
-   This script checks that all required environment variables are set.
-
-5. Initialize the database and seed initial data:
+3. Set up the database:
 
    ```bash
    npx prisma generate
-   npx prisma migrate dev --name init
-   npm run seed
+   npx prisma db push
    ```
 
-6. Run the development server
+4. Start the development server:
 
    ```bash
    npm run dev
    ```
 
-7. Open [http://localhost:3000](http://localhost:3000) in your browser (port may vary if 3000 is in use)
+5. Visit `http://localhost:3000` to see the application
 
-## Important Configuration Details
+### Environment Variables
 
-### Tailwind CSS v4 Configuration
+Create a `.env` file in the root directory with:
 
-This project uses Tailwind CSS v4, which requires specific configuration:
-
-1. **PostCSS Configuration**
-
-   In `postcss.config.js`, we use the specific `@tailwindcss/postcss` plugin:
-
-   ```js
-   export default {
-     plugins: {
-       '@tailwindcss/postcss': {},
-       autoprefixer: {},
-     },
-   };
-   ```
-
-2. **CSS Configuration**
-
-   In `src/app/globals.css`, we use the new import syntax and layer structure:
-
-   ```css
-   @import 'tailwindcss';
-
-   /* Define the cascading layers */
-   @layer theme, base, components, utilities;
-   ```
-
-3. **Theme Configuration**
-
-   We use the theme inline directive for CSS variables:
-
-   ```css
-   @theme inline {
-     --color-background: var(--background);
-     --color-foreground: var(--foreground);
-     /* ... other mappings */
-   }
-   ```
-
-For a comprehensive guide on migrating to Tailwind CSS v4 with React 19 and shadcn/ui, see our [Tailwind CSS v4 Upgrade Guide](./docs/TAILWIND_V4_UPGRADE.md).
-
-### React 19 and shadcn/ui Compatibility
-
-To ensure shadcn/ui components work with React 19:
-
-1. All components use the `data-slot` attribute pattern instead of `forwardRef`
-2. Component imports are structured to optimize for tree-shaking
-3. Dependencies are installed with the `--legacy-peer-deps` flag to handle conflicts
-
-## Troubleshooting
-
-For common issues and solutions, see our [Troubleshooting Guide](./docs/TROUBLESHOOTING.md).
+```
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_SECRET="your-secret-key"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
 
 ## Project Structure
 
-- `src/app`: Next.js App Router pages and API routes
-- `src/components`: React components, including shadcn/ui components
-- `src/components/ui`: UI components from shadcn/ui
-- `src/lib`: Utility functions and services
-- `src/types`: TypeScript type definitions
-- `prisma`: Database schema and migrations
-- `docs`: Project documentation
-- `__tests__`: Test files
+- `/src/app` - Next.js application routes
+- `/src/components` - Reusable UI components
+- `/src/lib` - Utility functions and shared logic
+- `/prisma` - Database schema and migrations
+- `/docs` - Project documentation and implementation notes
 
-## Development Tools
+## Working with Components
 
-The project includes several development tools to improve workflow:
+### shadcn/ui Component Considerations
 
-1. **Environment Validation**
+When working with shadcn/ui components, be aware of their underlying HTML structure:
 
-   - Automatic verification of required environment variables
-   - Run manually with `npm run verify-env`
+- `CardDescription` renders as a `<p>` element
+- `Badge` renders as a `<div>` element
 
-2. **ESLint Configuration**
+This means you should avoid nesting components that render as block elements (like `Badge`) inside components that render as paragraph elements (like `CardDescription`). Instead, structure your components like this:
 
-   - Uses ESLint v9 with new configuration format
-   - Run manually with `npm run lint`
-
-3. **Clearing Cache**
-   - If you encounter UI or build issues, try clearing the cache:
-   ```bash
-   rm -rf .next
-   rm -rf node_modules/.cache
-   ```
-
-## Testing
-
-Run tests using the following commands:
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
-
-# Run end-to-end tests
-npm run test:e2e
+```tsx
+<CardHeader>
+  <div className="flex justify-between items-center mb-1">
+    <CardTitle>Topic Title</CardTitle>
+    <Badge>Closed</Badge>
+  </div>
+  <CardDescription>Total votes: 12,345</CardDescription>
+</CardHeader>
 ```
 
-## Documentation
+### Image Handling
 
-For more detailed documentation, check the following files:
+For avatars and user images, we recommend:
 
-- [Setup Guide](./docs/SETUP.md): Detailed instructions for setting up the project
-- [Troubleshooting Guide](./docs/TROUBLESHOOTING.md): Solutions for common issues
-- [Technical Reliability](./docs/technical-reliability.md): Information about error handling and performance
-- [Architecture](./docs/architecture.md): Overview of the project architecture
+1. Using dynamic avatar services like DiceBear API
+2. Adding fallback images for missing resources
+3. Optimizing images for performance
+
+## Farcaster Frame Implementation
+
+This application implements the Farcaster Frame v2 specification, allowing it to be embedded in Farcaster clients. The frame implementation includes:
+
+- Meta tags for frame definition
+- API endpoints for frame interactions
+- Frame state management
+- Dynamic OG images for topics and results
+
+For more details, see the [Frame Implementation Documentation](/docs/FRAME_IMPLEMENTATION.md).
+
+## Troubleshooting
+
+If you encounter issues during development, check our [Troubleshooting Guide](/docs/TROUBLESHOOTING.md) for solutions to common problems with:
+
+- Tailwind CSS v4 configuration
+- shadcn/ui components
+- Next.js 15.2 compatibility
+- React 19 features
+- DOM nesting errors
+- Image loading issues
 
 ## Contributing
 
+Contributions are welcome! Please feel free to submit a Pull Request.
+
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ## License
@@ -211,9 +151,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- [Farcaster](https://www.farcaster.xyz/) for the Frame SDK
-- [Next.js](https://nextjs.org/) for the React framework
-- [Framer Motion](https://www.framer.com/motion/) for animations
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [shadcn/ui](https://ui.shadcn.com/) for UI components
+- [Farcaster](https://www.farcaster.xyz/) for the Frames specification
+- [shadcn/ui](https://ui.shadcn.com/) for the component system
+- [Next.js](https://nextjs.org/) for the web framework
 - [Prisma](https://www.prisma.io/) for the database ORM

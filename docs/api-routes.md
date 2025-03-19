@@ -15,6 +15,53 @@ Your API route should:
    - A new frame to display
    - A redirect URL
 
+## Next.js 15.2 Compatibility
+
+With Next.js 15.2, there are specific type requirements for API route handlers. The second parameter of route handlers (which contains route parameters) must use a consistent format. Here are the recommended approaches:
+
+### Standard Route Handler Format
+
+```typescript
+// src/app/api/frame/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const id = context.params.id;
+  // Your handler code...
+  return NextResponse.json({ id });
+}
+```
+
+### For Type Compatibility Issues
+
+If you encounter persistent type errors, you can use the following approach:
+
+```typescript
+export async function GET(request: NextRequest, context: any) {
+  const id = context.params.id;
+  // Your handler code...
+  return NextResponse.json({ id });
+}
+```
+
+### Consistent Parameter Pattern
+
+Avoid destructuring the context parameter in route handlers to ensure compatibility:
+
+```typescript
+// Preferred in Next.js 15.2:
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const id = context.params.id;
+  // ...
+}
+
+// Avoid this pattern:
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id;
+  // ...
+}
+```
+
 ## Basic API Route Implementation
 
 Here's how to implement a basic API route in Next.js to handle frame interactions:
@@ -126,97 +173,172 @@ function handleInteraction(buttonIndex: number, fid: number) {
 For better security, you should verify the signature of incoming frame messages. Here's how to implement signature verification:
 
 ```typescript
-// src/lib/verifyFrameMessage.ts
-import { createPublicClient, http } from 'viem';
-import { base } from 'viem/chains';
-import { FrameMessageData } from '@farcaster/frame-sdk';
+import { FrameValidationServiceScoped } from '@farcaster/core';
 
-// Create a public client for blockchain interactions
-const publicClient = createPublicClient({
-  chain: base,
-  transport: http(),
-});
-
-export async function verifyFrameMessage(
-  body: any
-): Promise<{ isValid: boolean; message: FrameMessageData | null }> {
-  try {
-    if (!body || !body.untrustedData || !body.trustedData) {
-      return { isValid: false, message: null };
-    }
-
-    const { untrustedData, trustedData } = body;
-
-    // Create message data
-    const message: FrameMessageData = {
-      fid: untrustedData.fid,
-      url: untrustedData.url,
-      messageHash: trustedData.messageHash,
-      timestamp: untrustedData.timestamp,
-      network: untrustedData.network,
-      buttonIndex: untrustedData.buttonIndex,
-      inputText: untrustedData.inputText || '',
-      castId: {
-        fid: untrustedData.castId?.fid,
-        hash: untrustedData.castId?.hash,
-      },
-    };
-
-    // In a production environment, you would verify the signature
-    // This is simplified for the example
-    const isValid = true;
-
-    return { isValid, message };
-  } catch (error) {
-    console.error('Error verifying frame message:', error);
-    return { isValid: false, message: null };
-  }
+// Function to verify frame message
+async function verifyFrameMessage(message: FrameMessage): Promise<boolean> {
+  const validationService = new FrameValidationServiceScoped();
+  const result = await validationService.validateFrameMessage(message);
+  return result.isValid;
 }
 ```
 
-Then update your API route to use this verification:
+## Security Best Practices
+
+When implementing frame API handlers, follow these security best practices:
+
+### 1. Input Validation
+
+Always validate incoming frame message data before processing:
 
 ```typescript
-// src/app/api/frame/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { verifyFrameMessage } from '@/lib/verifyFrameMessage';
+// Input validation function
+function validateFrameMessage(data: any): {
+  isValid: boolean;
+  buttonIndex?: number;
+  fid?: number;
+  error?: string;
+} {
+  // Check if data exists and is an object
+  if (!data || typeof data !== 'object') {
+    return { isValid: false, error: 'Invalid request data format' };
+  }
 
-export async function POST(req: NextRequest) {
+  // Check for untrustedData object
+  if (!data.untrustedData || typeof data.untrustedData !== 'object') {
+    return { isValid: false, error: 'Missing or invalid untrustedData' };
+  }
+
+  // Validate buttonIndex
+  const buttonIndex = data.untrustedData.buttonIndex;
+  if (
+    buttonIndex === undefined ||
+    typeof buttonIndex !== 'number' ||
+    !Number.isInteger(buttonIndex) ||
+    buttonIndex < 1
+  ) {
+    return { isValid: false, error: 'Invalid or missing buttonIndex' };
+  }
+
+  // Extract FID if present (optional)
+  let fid = undefined;
+  if (data.untrustedData.fid !== undefined) {
+    if (typeof data.untrustedData.fid === 'number' && Number.isInteger(data.untrustedData.fid)) {
+      fid = data.untrustedData.fid;
+    } else {
+      return { isValid: false, error: 'Invalid FID format' };
+    }
+  }
+
+  return { isValid: true, buttonIndex, fid };
+}
+
+// Usage in API route
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    // Parse the request body
-    const body = await req.json();
+    const data = await req.json();
 
-    // Verify the message signature
-    const { isValid, message } = await verifyFrameMessage(body);
-
-    if (!isValid || !message) {
-      return NextResponse.json({ error: 'Invalid message signature' }, { status: 400 });
+    // Validate the frame message
+    const validation = validateFrameMessage(data);
+    if (!validation.isValid) {
+      return new NextResponse(
+        JSON.stringify({
+          message: validation.error || 'Invalid frame message',
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // Extract user information
-    const { fid, url, buttonIndex } = message;
-
-    console.log('Received frame interaction:');
-    console.log('- FID:', fid);
-    console.log('- URL:', url);
-    console.log('- Button Index:', buttonIndex);
-
-    // Process the interaction based on the button clicked
-    const responseData = handleInteraction(buttonIndex, fid);
-
-    // Return a new frame as response
-    return NextResponse.json(responseData);
+    // Continue with valid data...
   } catch (error) {
-    console.error('Error processing frame interaction:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Handle errors...
   }
 }
+```
 
-// Helper function to handle the interaction
-function handleInteraction(buttonIndex: number, fid: number) {
-  // Same implementation as before
+### 2. Safe Database Operations
+
+Never use raw SQL with user input. Instead, use parameterized queries:
+
+```typescript
+// UNSAFE - vulnerable to SQL injection:
+await prisma.$executeRawUnsafe(
+  `UPDATE "Topic" SET "votesA" = "votesA" + 1 WHERE "id" = ${topicId}`
+);
+
+// SAFE - use Prisma's parameterized methods:
+await prisma.topic.update({
+  where: { id: parseInt(topicId) },
+  data: { votesA: { increment: 1 } },
+});
+```
+
+### 3. Transaction Handling
+
+Use transactions for operations that require atomicity:
+
+```typescript
+// Perform multiple operations atomically
+await prisma.$transaction(async tx => {
+  // Update vote counts
+  await tx.topic.update({
+    where: { id: topicId },
+    data: { votesA: { increment: 1 } },
+  });
+
+  // Record the vote
+  await tx.vote.create({
+    data: {
+      fid: userId,
+      topicId: topicId,
+      choice: 'A',
+    },
+  });
+
+  // Update user streak
+  await tx.userStreak.update({
+    where: { fid: userId },
+    data: {
+      currentStreak: { increment: 1 },
+      lastVoteDate: new Date(),
+    },
+  });
+});
+```
+
+This ensures that either all operations complete successfully or none of them do, preventing data inconsistencies when errors occur.
+
+### 4. Proper Error Handling
+
+Implement comprehensive error handling:
+
+```typescript
+try {
+  // API logic here
+} catch (error) {
+  console.error('Error processing frame request:', error);
+
+  // Return a user-friendly error response
+  return new NextResponse(
+    JSON.stringify({
+      message: 'Error processing request',
+      image: {
+        url: new URL('/api/og/error', new URL(req.url)).toString(),
+        aspectRatio: '1.91:1',
+      },
+    }),
+    {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 }
 ```
+
+## Button Handling
 
 ## Multi-Step Interactions
 

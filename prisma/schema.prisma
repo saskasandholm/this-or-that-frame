@@ -30,6 +30,8 @@ model Topic {
   optionB    String
   imageA     String?
   imageB     String?
+  votesA     Int       @default(0)
+  votesB     Int       @default(0)
   startDate  DateTime  @default(now())
   endDate    DateTime?
   isActive   Boolean   @default(true)
@@ -75,28 +77,52 @@ model UserStreak {
 }
 
 model Achievement {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String
-  badgeIcon   String   // Emoji or icon name
-  badgeColor  String   // CSS gradient or color value
-  threshold   Int      // Number required to earn this achievement
-  type        String   // 'streak', 'votes', 'rare', 'divisive', etc.
-  createdAt   DateTime @default(now())
-  users       UserAchievement[]
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  description   String
+  badgeIcon     String   // Emoji or icon name
+  badgeColor    String   // CSS gradient or color value
+  threshold     Int      // Number required to earn this achievement
+  type          String   // 'streak', 'votes', 'rare', 'divisive', etc.
+  category      String   @default("general") // 'streak', 'voting', 'exploration', 'social', 'rare', etc.
+  tier          Int      @default(1) // Achievement level/tier (1, 2, 3, etc)
+  rarity        String   @default("common") // 'common', 'uncommon', 'rare', 'epic', 'legendary'
+  isShareable   Boolean  @default(true) // Whether this achievement can be shared
+  shareImage    String?  // Optional URL for share card image 
+  createdAt     DateTime @default(now())
+  users         UserAchievement[]
+  shares        UserAchievementShare[]
 }
 
 model UserAchievement {
-  id            Int         @id @default(autoincrement())
-  fid           Int
-  achievementId Int
-  achievement   Achievement @relation(fields: [achievementId], references: [id])
-  userStreak    UserStreak  @relation(fields: [fid], references: [fid], onDelete: Cascade)
-  earnedAt      DateTime    @default(now())
+  id               Int                   @id @default(autoincrement())
+  fid              Int
+  achievementId    Int
+  achievement      Achievement           @relation(fields: [achievementId], references: [id])
+  userStreak       UserStreak            @relation(fields: [fid], references: [fid], onDelete: Cascade)
+  earnedAt         DateTime              @default(now())
+  progress         Int                   @default(0) // Track progress towards achievement
+  shares           UserAchievementShare[]
   
   @@unique([fid, achievementId])
   @@index([fid])
   @@index([achievementId])
+}
+
+// New model to track achievement shares
+model UserAchievementShare {
+  id                Int             @id @default(autoincrement())
+  fid               Int             // User who shared
+  achievementId     Int             // Achievement that was shared
+  achievement       Achievement     @relation(fields: [achievementId], references: [id])
+  userAchievement   UserAchievement @relation(fields: [userAchievementId], references: [id])
+  userAchievementId Int             // Reference to the specific user achievement
+  platform          String          // 'farcaster', 'twitter', 'url', etc.
+  sharedAt          DateTime        @default(now())
+  
+  @@index([fid])
+  @@index([achievementId])
+  @@index([userAchievementId])
 }
 
 // New model for user-generated topic submissions
@@ -134,4 +160,22 @@ model Admin {
   createdBy   Int?      // FID of admin who created this admin (null for first admin)
 
   @@index([fid])
+}
+
+// New model for tracking user activity
+model UserActivity {
+  id          Int       @id @default(autoincrement())
+  fid         Int       // Farcaster ID of the user
+  action      String    // "vote", "view", "share", "submit", etc.
+  details     String?   // Optional JSON string with action-specific details
+  ipAddress   String?   // Optional IP address for security monitoring
+  userAgent   String?   // Optional user agent for analytics
+  entityType  String?   // Optional entity type (e.g., "topic", "achievement")
+  entityId    Int?      // Optional entity ID (e.g., topic ID, achievement ID)
+  timestamp   DateTime  @default(now())
+
+  @@index([fid])
+  @@index([action])
+  @@index([timestamp])
+  @@index([entityType, entityId])
 } 
