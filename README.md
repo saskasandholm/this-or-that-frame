@@ -88,7 +88,33 @@ SENTRY_DSN="your-sentry-dsn" # Optional, for error tracking
 - `/src/hooks` - Custom React hooks
 - `/src/context` - React context providers
 - `/prisma` - Database schema and migrations
-- `/docs` - Project documentation and implementation notes
+- `/docs` - Project documentation (see Documentation section below)
+
+## Documentation
+
+The project has comprehensive documentation organized into logical categories in the `/docs` directory:
+
+- **[Documentation Index](/docs/README.md)** - Overview of all available documentation
+
+### Core Documentation
+
+- **[Project Overview](/docs/PROJECT_OVERVIEW.md)** - High-level overview of the project
+- **[Setup Guide](/docs/SETUP.md)** - Detailed environment setup instructions
+- **[Deployment Guide](/docs/DEPLOYMENT.md)** - How to deploy the application
+- **[Troubleshooting](/docs/TROUBLESHOOTING.md)** - Solutions to common problems
+
+### Architecture & Implementation
+
+- **[System Architecture](/docs/architecture.md)** - Overview of system architecture
+- **[Database Schema](/docs/DATABASE_SCHEMA.md)** - Database structure and models
+- **[API Routes](/docs/api-routes.md)** - API endpoints and usage
+- **[Components](/docs/components/)** - Component-specific documentation
+
+### Farcaster Integration
+
+- **[Frame Implementation](/docs/FRAME_IMPLEMENTATION.md)** - How frames are implemented
+- **[Authentication](/docs/FARCASTER_AUTH.md)** - Farcaster authentication integration
+- **[Wallet Integration](/docs/wallet-integration.md)** - Wallet connection for transactions
 
 ## Authentication
 
@@ -142,18 +168,6 @@ This application implements the Farcaster Frame v2 specification, allowing it to
 - Dynamic OG images for topics and results
 
 For more details, see the [Frame Implementation Documentation](/docs/FRAME_IMPLEMENTATION.md).
-
-## Troubleshooting
-
-If you encounter issues during development, check our [Troubleshooting Guide](/docs/TROUBLESHOOTING.md) for solutions to common problems with:
-
-- Tailwind CSS v4 configuration
-- shadcn/ui components
-- Next.js 15.2 compatibility
-- React 19 features
-- DOM nesting errors
-- Image loading issues
-- Authentication issues
 
 ## Contributing
 
