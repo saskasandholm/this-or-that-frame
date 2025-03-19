@@ -11,6 +11,7 @@ A web application that presents binary choices to users, collects votes, and sho
 - **Educational Content**: "Did You Know" facts related to each topic
 - **Admin Dashboard**: Manage topics and monitor engagement
 - **Trending & Past Topics**: Browse popular topics and see voting history
+- **Farcaster Authentication**: Sign in with your Farcaster account to track voting history and achievements
 
 ## Demo
 
@@ -28,6 +29,8 @@ Check out the various components of the application in our demo pages:
 - **Styling**: Tailwind CSS v4 with shadcn/ui components
 - **Animations**: Framer Motion
 - **Integration**: Farcaster Frame SDK
+- **Authentication**: Farcaster Auth-kit
+- **Monitoring**: Sentry for error tracking, Vercel Analytics for performance
 
 ## Getting Started
 
@@ -74,6 +77,7 @@ Create a `.env` file in the root directory with:
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-secret-key"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+SENTRY_DSN="your-sentry-dsn" # Optional, for error tracking
 ```
 
 ## Project Structure
@@ -81,8 +85,23 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 - `/src/app` - Next.js application routes
 - `/src/components` - Reusable UI components
 - `/src/lib` - Utility functions and shared logic
+- `/src/hooks` - Custom React hooks
+- `/src/context` - React context providers
 - `/prisma` - Database schema and migrations
 - `/docs` - Project documentation and implementation notes
+
+## Authentication
+
+This project uses Farcaster Auth-kit for authentication. Users can sign in with their Farcaster accounts to track their voting history, earn achievements, and access protected features.
+
+Key authentication features include:
+
+- Sign in with Farcaster account
+- Persistent sessions with secure cookies
+- Protected routes with middleware
+- User profile data from Farcaster
+
+For more details, see the [Farcaster Authentication Documentation](/docs/FARCASTER_AUTH.md).
 
 ## Working with Components
 
@@ -134,6 +153,7 @@ If you encounter issues during development, check our [Troubleshooting Guide](/d
 - React 19 features
 - DOM nesting errors
 - Image loading issues
+- Authentication issues
 
 ## Contributing
 
@@ -151,7 +171,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- [Farcaster](https://www.farcaster.xyz/) for the Frames specification
+- [Farcaster](https://www.farcaster.xyz/) for the Frames specification and Auth-kit
 - [shadcn/ui](https://ui.shadcn.com/) for the component system
 - [Next.js](https://nextjs.org/) for the web framework
 - [Prisma](https://www.prisma.io/) for the database ORM

@@ -24,7 +24,10 @@ export async function generateMetadata(_params: any, parent: ResolvingMetadata):
   };
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: { login?: string } }) {
+  // Check if this page was redirected from a protected route
+  const loginRequired = searchParams.login === 'required';
+
   // Get the active topic
   let activeTopic;
   try {
@@ -161,6 +164,7 @@ export default async function HomePage() {
         trendingTopics={trendingTopics}
         didYouKnowFacts={didYouKnowFacts}
         showFirstTimeExperience={true}
+        loginRequired={loginRequired}
       />
     </>
   );

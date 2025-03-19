@@ -20,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ArrowRight, LineChart, Sparkles, Clock, TrendingUp, History } from 'lucide-react';
+import { ArrowRight, LineChart, Sparkles, Clock, TrendingUp, History, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import VotingInterface from './VotingInterface';
@@ -28,6 +28,7 @@ import TrendingTopicCard from './TrendingTopicCard';
 import PastTopicCard from './PastTopicCard';
 import Image from 'next/image';
 import { topicApi, VoteResult } from '@/services/api';
+import { SignInButton } from '@/components/SignInButton';
 
 export interface PageDataProps {
   topicTitle: string;
@@ -47,6 +48,7 @@ export interface PageDataProps {
   trendingTopics?: any[];
   didYouKnowFacts?: string[];
   showFirstTimeExperience?: boolean;
+  loginRequired?: boolean;
 }
 
 // Define sample historical topics
@@ -227,11 +229,13 @@ const ClientPage = ({
   trendingTopics: providedTrendingTopics,
   didYouKnowFacts,
   showFirstTimeExperience: forceFirstTimeExperience,
+  loginRequired,
 }: PageDataProps) => {
   const { theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState('Loading topics...');
   const [activeTab, setActiveTab] = useState('daily');
+  const [showLoginPrompt, setShowLoginPrompt] = useState(!!loginRequired);
 
   // Replace multiple useState calls with useReducer
   const [votingState, dispatch] = useReducer(votingReducer, {
@@ -461,6 +465,63 @@ const ClientPage = ({
   const handleTryAgain = () => {
     console.log('Try again action triggered');
   };
+
+  // Show login prompt if redirected from a protected route
+  if (showLoginPrompt) {
+    return (
+      <div className="container mx-auto px-4 py-12 sm:py-24 max-w-6xl">
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center justify-center text-center gap-6"
+          >
+            <div className="rounded-lg bg-primary/10 p-3 text-primary inline-block">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 10, 0] }}
+                transition={{ duration: 0.5, repeat: 2, repeatDelay: 2 }}
+              >
+                <Lock className="h-12 w-12" />
+              </motion.div>
+            </div>
+
+            <h1 className="text-3xl font-bold tracking-tight">Authentication Required</h1>
+
+            <p className="text-muted-foreground max-w-md">
+              You need to sign in with your Farcaster account to access this feature. Signing in
+              lets you save your voting history, track your achievements, and more.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              <div className="border rounded-lg p-6 bg-card shadow-sm">
+                <h3 className="font-semibold text-lg mb-3">Sign in Benefits</h3>
+                <ul className="list-disc list-inside text-left space-y-2 text-muted-foreground">
+                  <li>Track your voting history</li>
+                  <li>Earn achievement badges</li>
+                  <li>Maintain your daily streak</li>
+                  <li>Challenge friends directly</li>
+                  <li>Submit your own topic ideas</li>
+                </ul>
+              </div>
+
+              <div className="flex flex-col justify-center items-center p-6 gap-6">
+                <div className="text-center">
+                  <SignInButton className="w-full" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Or{' '}
+                  <Button variant="link" className="p-0" onClick={() => setShowLoginPrompt(false)}>
+                    continue as guest
+                  </Button>
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20">

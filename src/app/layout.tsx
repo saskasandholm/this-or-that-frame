@@ -4,8 +4,8 @@ import './globals.css';
 import WalletDetection from '@/components/WalletDetection';
 import NavigationBar from '@/components/NavigationBar';
 import { cn } from '@/lib/utils';
-import { ThemeProvider } from '@/components/ThemeProvider';
 import { Analytics } from '@vercel/analytics/react';
+import { Providers } from './providers';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -32,12 +32,7 @@ export default function RootLayout({
         )}
         style={{ overscrollBehaviorX: 'auto' }}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          forcedTheme="dark"
-        >
+        <Providers>
           <WalletDetection />
           <div className="relative flex min-h-screen flex-col">
             <NavigationBar />
@@ -69,7 +64,7 @@ export default function RootLayout({
             </footer>
           </div>
           <Analytics />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

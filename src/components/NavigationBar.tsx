@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Menu, X, Home, Layout, Settings, Book, LayoutDashboard, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { SignInButton } from '@/components/SignInButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -95,6 +96,10 @@ export default function NavigationBar() {
             <div className="ml-2">
               <ThemeToggle />
             </div>
+
+            <div className="ml-2">
+              <SignInButton />
+            </div>
           </nav>
 
           <div className="flex md:hidden items-center">
@@ -180,6 +185,10 @@ export default function NavigationBar() {
                 Documentation
               </Button>
             </Link>
+
+            <div className="border-t border-border pt-4 mt-2">
+              <SignInButton className="w-full" />
+            </div>
           </div>
         </motion.div>
       )}
