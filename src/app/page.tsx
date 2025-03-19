@@ -24,7 +24,13 @@ export async function generateMetadata(_params: any, parent: ResolvingMetadata):
   };
 }
 
-export default async function HomePage({ searchParams }: { searchParams: { login?: string } }) {
+type Props = {
+  searchParams: {
+    login?: string;
+  };
+};
+
+export default async function HomePage({ searchParams }: Props) {
   // Check if this page was redirected from a protected route
   const loginRequired = searchParams.login === 'required';
 
