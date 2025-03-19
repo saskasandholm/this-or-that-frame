@@ -5,6 +5,7 @@ import WalletDetection from '@/components/WalletDetection';
 import NavigationBar from '@/components/NavigationBar';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Analytics } from '@vercel/analytics/react';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -67,6 +68,7 @@ export default function RootLayout({
               </div>
             </footer>
           </div>
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
