@@ -6,6 +6,7 @@ import NavigationBar from '@/components/NavigationBar';
 import { cn } from '@/lib/utils';
 import { Analytics } from '@vercel/analytics/react';
 import { Providers } from './providers';
+import '@farcaster/auth-kit/styles.css';
 
 const fontSans = FontSans({
   subsets: ['latin'],
