@@ -2,6 +2,13 @@
 
 This document tracks the progress of our implementation roadmap as we expand our Farcaster Frame application beyond basic frames.
 
+## Deployment Status
+
+| Environment | Status    | URL                                                       | Last Deployed | Notes                                       |
+| ----------- | --------- | --------------------------------------------------------- | ------------- | ------------------------------------------- |
+| Production  | Active    | https://frame-bf2ny602i-saska-socials-projects.vercel.app | Mar 19, 2025  | Successfully deployed with monitoring tools |
+| Development | Active    | Local development                                         | -             | Running locally for development             |
+
 ## Phase 1: Production Stabilization & Content Development
 
 | Task                                | Status      | Assignee | Target Completion | Notes                                                              |
@@ -115,7 +122,7 @@ This document tracks the progress of our implementation roadmap as we expand our
 
 ## Weekly Check-in
 
-- **Week 1 Check-in**: In Progress - Implemented error monitoring, performance tracking, and health check endpoint
+- **Week 1 Check-in**: In Progress - Implemented error monitoring, performance tracking, and health check endpoint; successfully deployed to Vercel with monitoring tools
 - **Week 2 Check-in**: Not Started
 - **Week 3 Check-in**: Not Started
 - **Week 4 Check-in**: Not Started
