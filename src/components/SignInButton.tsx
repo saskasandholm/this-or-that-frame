@@ -61,6 +61,13 @@ export function SignInButton({ className }: { className?: string }) {
     <div className={`farcaster-button-wrapper ${className}`}>
       <style jsx global>{`
         /* Override Farcaster button styles to match our UI */
+        .farcaster-button-wrapper {
+          display: flex;
+          align-items: center;
+          height: 40px;
+          overflow: hidden;
+        }
+
         .farcaster-button-wrapper button.fc-authkit-button {
           background-color: rgb(139, 92, 246) !important; /* Match our purple button */
           border-radius: 0.5rem !important;
@@ -71,7 +78,12 @@ export function SignInButton({ className }: { className?: string }) {
           font-weight: 500 !important;
           box-shadow: none !important;
           height: 40px !important;
-          min-width: auto !important;
+          width: auto !important;
+          min-width: 0 !important;
+          max-height: 40px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
 
         .farcaster-button-wrapper button.fc-authkit-button:hover {
@@ -84,12 +96,25 @@ export function SignInButton({ className }: { className?: string }) {
           align-items: center !important;
           justify-content: center !important;
           gap: 0.5rem !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
 
         .farcaster-button-wrapper button.fc-authkit-button > div > div {
           display: flex !important;
           align-items: center !important;
           gap: 0.5rem !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        .farcaster-button-wrapper button.fc-authkit-button img {
+          width: 16px !important;
+          height: 16px !important;
+        }
+
+        .farcaster-button-wrapper button.fc-authkit-button span {
+          font-size: 14px !important;
         }
       `}</style>
       <FarcasterSignInButton

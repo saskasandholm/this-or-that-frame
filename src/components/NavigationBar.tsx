@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Menu, X, Home, Layout, Settings, Book, LayoutDashboard, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { SignInButton } from '@/components/SignInButton';
 import {
   DropdownMenu,
@@ -94,16 +93,11 @@ export default function NavigationBar() {
             </Link>
 
             <div className="ml-2">
-              <ThemeToggle />
-            </div>
-
-            <div className="ml-2">
               <SignInButton />
             </div>
           </nav>
 
           <div className="flex md:hidden items-center">
-            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"
