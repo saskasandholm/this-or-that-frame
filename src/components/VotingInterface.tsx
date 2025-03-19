@@ -7,8 +7,8 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 interface VotingInterfaceProps {
   topic: {
@@ -123,21 +123,12 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Image
+                    <OptimizedImage
                       src={topic.imageA}
                       alt={topic.optionA}
                       priority
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-all duration-300"
-                      style={{
-                        objectFit: 'cover',
-                        objectPosition: 'center',
-                      }}
-                      quality={95}
-                      unoptimized={
-                        topic.imageA.startsWith('data:') || topic.imageA.includes('/api/og')
-                      }
+                      className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
                   </motion.div>
@@ -230,21 +221,12 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Image
+                    <OptimizedImage
                       src={topic.imageB}
                       alt={topic.optionB}
                       priority
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-all duration-300"
-                      style={{
-                        objectFit: 'cover',
-                        objectPosition: 'center',
-                      }}
-                      quality={95}
-                      unoptimized={
-                        topic.imageB.startsWith('data:') || topic.imageB.includes('/api/og')
-                      }
+                      className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
                   </motion.div>

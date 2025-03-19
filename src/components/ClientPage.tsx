@@ -5,6 +5,7 @@ import { useState, useEffect, useReducer, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import ContextAwareTopicView from './ContextAwareTopicView';
+import VotingInterfaceWrapper from './VotingInterfaceWrapper';
 import FirstTimeUserExperience from './FirstTimeUserExperience';
 import DidYouKnow from './DidYouKnow';
 import DirectChallenge from './DirectChallenge';
@@ -577,7 +578,7 @@ const ClientPage = ({
                     renderTopicSkeleton()
                   ) : hasValidTopic ? (
                     currentTopicId && topicOptions ? (
-                      <ContextAwareTopicView
+                      <VotingInterfaceWrapper
                         topicId={currentTopicId}
                         topicTitle={topicTitle || 'Unknown Topic'}
                         optionA={topicOptions.optionA}
@@ -593,6 +594,25 @@ const ClientPage = ({
                         isRareOpinion={votingState.isRareOpinion}
                         isHighlyContested={votingState.isHighlyContested}
                         onTryAgain={handleTryAgain}
+                        results={
+                          votingState.results
+                            ? {
+                                totalVotes: votingState.results.A + votingState.results.B,
+                                percentA:
+                                  Math.round(
+                                    (votingState.results.A /
+                                      (votingState.results.A + votingState.results.B)) *
+                                      100
+                                  ) || 0,
+                                percentB:
+                                  Math.round(
+                                    (votingState.results.B /
+                                      (votingState.results.A + votingState.results.B)) *
+                                      100
+                                  ) || 0,
+                              }
+                            : undefined
+                        }
                       />
                     ) : (
                       <div className="text-center space-y-4">

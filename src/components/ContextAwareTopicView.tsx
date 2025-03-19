@@ -13,6 +13,7 @@ import Image from 'next/image';
 import DidYouKnow from './DidYouKnow';
 import DirectChallenge from './DirectChallenge';
 import FriendsVotedContext from './FriendsVotedContext';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 // Add the correct type from FrameDiscoveryHelper
 interface FrameDiscoveryState {
@@ -389,7 +390,12 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = props => {
           >
             {props.imageA && (
               <div className="relative h-48 w-full">
-                <Image src={props.imageA} alt={props.optionA} fill style={{ objectFit: 'cover' }} />
+                <OptimizedImage
+                  src={props.imageA}
+                  alt={props.optionA}
+                  fill
+                  className="object-cover"
+                />
               </div>
             )}
             <div className="p-4">
@@ -424,7 +430,12 @@ const ContextAwareTopicView: React.FC<TopicViewProps> = props => {
           >
             {props.imageB && (
               <div className="relative h-48 w-full">
-                <Image src={props.imageB} alt={props.optionB} fill style={{ objectFit: 'cover' }} />
+                <OptimizedImage
+                  src={props.imageB}
+                  alt={props.optionB}
+                  fill
+                  className="object-cover"
+                />
               </div>
             )}
             <div className="p-4">

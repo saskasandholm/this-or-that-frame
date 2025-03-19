@@ -15,20 +15,19 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: ['localhost', 'api.dicebear.com'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
+        hostname: 'images.unsplash.com',
       },
       {
         protocol: 'https',
         hostname: 'api.dicebear.com',
         pathname: '/7.x/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
       },
     ],
     // Enable SVG support from trusted sources

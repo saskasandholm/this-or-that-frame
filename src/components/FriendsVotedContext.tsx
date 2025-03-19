@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 interface Friend {
   fid: string;
@@ -108,12 +108,12 @@ const FriendsVotedContext: React.FC<FriendsVotedContextProps> = ({
             }`}
           >
             <div className="relative w-6 h-6 rounded-full overflow-hidden mr-2">
-              <Image
+              <OptimizedImage
                 src={friend.avatar || '/images/default-avatar.png'}
                 alt={friend.username}
                 fill
-                sizes="24px"
                 className="object-cover"
+                sizes="24px"
               />
             </div>
             <span className="text-xs font-medium text-gray-200">{friend.username}</span>
