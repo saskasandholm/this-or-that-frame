@@ -179,8 +179,11 @@ This document outlines the plan for updating and enhancing the project documenta
   - [x] SignInButton
   - [x] TrendingTopicCard
   - [x] PastTopicCard
-  - [ ] WagmiProvider
-  - [ ] WalletConnectionButton (future)
+  - [x] WagmiProvider
+  - [x] WalletConnectionButton
+  - [x] TransactionSender
+  - [ ] MessageSigner
+  - [ ] TokenBalance
 
 ### Medium Priority
 
@@ -204,13 +207,13 @@ This document outlines the plan for updating and enhancing the project documenta
 
 ## Documentation Consolidation Progress
 
-| Area                    | Status         | Notes                                                                      |
-| ----------------------- | -------------- | -------------------------------------------------------------------------- |
-| API Documentation       | ✅ Completed   | Merged from multiple sources into one clear document                       |
-| Farcaster Integration   | ✅ Completed   | Removed duplicate content from wallet-integration.md                       |
-| Component Documentation | 🟡 In Progress | Added documentation for SignInButton, TrendingTopicCard, and PastTopicCard |
-| Wallet Integration      | ✅ Completed   | Focused solely on wallet functionality                                     |
-| Directory Structure     | ✅ Completed   | Updated to reflect current project organization                            |
+| Area                    | Status         | Notes                                                                  |
+| ----------------------- | -------------- | ---------------------------------------------------------------------- |
+| API Documentation       | ✅ Completed   | Merged from multiple sources into one clear document                   |
+| Farcaster Integration   | ✅ Completed   | Removed duplicate content from wallet-integration.md                   |
+| Component Documentation | 🟡 In Progress | Added docs for SignInButton, WalletConnectionButton, TransactionSender |
+| Wallet Integration      | ✅ Completed   | Focused on wallet functionality, transaction and signing capabilities  |
+| Directory Structure     | ✅ Completed   | Updated to reflect current project organization                        |
 
 ## Standard Documentation Template
 
@@ -249,6 +252,8 @@ Detailed description of the component/feature.
 ```
 ````
 
+```
+
 ## Implementation Details
 
 Technical details about how the component/feature is implemented.
@@ -271,7 +276,8 @@ Description of how errors are handled.
 
 ## Next Documentation Tasks
 
-1. Create documentation for WagmiProvider component
-2. Begin work on testing documentation
-3. Update API documentation with any new endpoints
-```
+1. ~~Create documentation for WagmiProvider component~~ _(Completed)_
+2. ~~Create documentation for WalletConnectionButton component~~ _(Completed)_
+3. ~~Create documentation for TransactionSender component~~ _(Completed)_
+4. Create documentation for MessageSigner and TokenBalance components
+5. Begin work on testing documentation

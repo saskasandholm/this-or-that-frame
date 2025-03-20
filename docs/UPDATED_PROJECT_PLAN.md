@@ -55,13 +55,32 @@ Based on our analysis of Farcaster's broader ecosystem, we've identified new opp
 - [x] Add user-specific content and personalized views
 - [x] Style the sign-in button to match application design (Added: 2025-04-02)
 
-### Wallet Integration (NEXT PRIORITY)
+### Wallet Integration (IN PROGRESS)
 
-- [ ] Implement Farcaster wallet connector (In Progress)
-- [ ] Create wallet connection UI
-- [ ] Add transaction sending functionality
-- [ ] Implement token or NFT interaction capabilities
-- [ ] Create transaction status tracking and notifications
+1. Set up Farcaster Frames wallet connector using Frame SDK
+
+   - [x] Create connector.ts for wallet integration
+   - [x] Implement WagmiProvider for wallet state management
+   - [x] Build and test wallet detection component
+
+2. Implement wallet user interface
+
+   - [x] Create WalletConnectionButton component
+   - [x] Build WalletStatus component showing connection state
+   - [x] Add wallet address display with copy function
+
+3. Add transaction functionality
+
+   - [x] Implement TransactionSender component
+   - [x] Create TokenBalance component
+   - [x] Build transaction status tracking
+   - [x] Add signing capabilities (messages and typed data)
+
+4. Testing and optimization
+   - [ ] Test on Optimism testnet
+   - [ ] Test in Warpcast Frame Playground
+   - [ ] Optimize UI for mobile and desktop
+   - [ ] Add error handling and recovery paths
 
 ### Farcaster Protocol Integration
 
@@ -141,28 +160,28 @@ Based on our analysis of Farcaster's broader ecosystem, we've identified new opp
 
 1. Set up Farcaster Frames wallet connector using Frame SDK
 
-   - Create connector.ts for wallet integration
-   - Implement WagmiProvider for wallet state management
-   - Build and test wallet detection component
+   - [x] Create connector.ts for wallet integration
+   - [x] Implement WagmiProvider for wallet state management
+   - [x] Build and test wallet detection component
 
 2. Implement wallet user interface
 
-   - Create WalletConnectionButton component
-   - Build WalletStatus component showing connection state
-   - Add wallet address display with copy function
+   - [x] Create WalletConnectionButton component
+   - [x] Build WalletStatus component showing connection state
+   - [x] Add wallet address display with copy function
 
 3. Add transaction functionality
 
-   - Implement SendTransaction component
-   - Create TokenBalance component
-   - Build TransactionStatus tracking component
-   - Add signing capabilities (messages and typed data)
+   - [x] Implement TransactionSender component
+   - [x] Create TokenBalance component
+   - [x] Build transaction status tracking
+   - [x] Add signing capabilities (messages and typed data)
 
 4. Testing and optimization
-   - Test on Optimism testnet
-   - Test in Warpcast Frame Playground
-   - Optimize UI for mobile and desktop
-   - Add error handling and recovery paths
+   - [ ] Test on Optimism testnet
+   - [ ] Test in Warpcast Frame Playground
+   - [ ] Optimize UI for mobile and desktop
+   - [ ] Add error handling and recovery paths
 
 ### Frame Advanced Features
 
@@ -198,6 +217,8 @@ Based on our analysis of Farcaster's broader ecosystem, we've identified new opp
 
 ## Changelog
 
+- **2025-04-15**: ✅ Implemented transaction sending, message signing, and token balance components
+- **2025-04-10**: ✅ Implemented Farcaster Frames wallet connector and basic wallet connection UI
 - **2025-04-02**: ✅ Fixed styling of Farcaster Auth-kit sign-in button to match application design
 - **2025-04-02**: Updated wallet integration plan with more detailed timeline and implementation steps
 - **2025-04-01**: ✅ Completed Farcaster Auth-kit integration, adding authentication, sessions, and personalized content

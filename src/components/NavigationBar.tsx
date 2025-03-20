@@ -3,9 +3,20 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Menu, X, Home, Layout, Settings, Book, LayoutDashboard, Sparkles } from 'lucide-react';
+import {
+  Menu,
+  X,
+  Home,
+  Layout,
+  Settings,
+  Book,
+  LayoutDashboard,
+  Sparkles,
+  Wallet,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SignInButton } from '@/components/SignInButton';
+import WalletConnectionButton from '@/components/WalletConnectionButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,6 +86,11 @@ export default function NavigationBar() {
                 <Link href="/demo/frame-save">
                   <DropdownMenuItem>Frame Save Prompt</DropdownMenuItem>
                 </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Wallet Features</DropdownMenuLabel>
+                <Link href="/wallet-demo">
+                  <DropdownMenuItem>Wallet Integration</DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -94,6 +110,10 @@ export default function NavigationBar() {
 
             <div className="ml-2">
               <SignInButton />
+            </div>
+
+            <div className="ml-2">
+              <WalletConnectionButton />
             </div>
           </nav>
 
@@ -162,6 +182,13 @@ export default function NavigationBar() {
               </Button>
             </Link>
 
+            <Link href="/wallet-demo" onClick={closeMenu}>
+              <Button variant="ghost" className="w-full justify-start pl-6">
+                <Wallet className="mr-2 h-4 w-4" />
+                Wallet Integration
+              </Button>
+            </Link>
+
             <div className="border-t border-border pt-2">
               <p className="px-3 py-1 text-sm font-medium text-muted-foreground">Admin</p>
             </div>
@@ -182,6 +209,10 @@ export default function NavigationBar() {
 
             <div className="border-t border-border pt-4 mt-2">
               <SignInButton className="w-full" />
+            </div>
+
+            <div className="mt-2">
+              <WalletConnectionButton />
             </div>
           </div>
         </motion.div>
