@@ -1,9 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useSignMessage, useSignTypedData } from 'wagmi';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import errorLogger from '@/lib/errorLogger';
+import { ErrorBoundary } from '@/lib/ErrorBoundary';
+
+/**
+ * Fallback UI for MessageSigner when an error occurs
+ */
+const MessageSignerFallback = ({ error, resetError }: { error: Error; resetError: () => void }) => (
+  <div className="p-4 border rounded-lg bg-red-50 border-red-200">
+    <h3 className="text-sm font-medium mb-2 text-red-800">Message Signing Error</h3>
+    <p className="text-sm text-red-700 mb-3">{error.message}</p>
+    <Button variant="outline" size="sm" onClick={resetError} className="bg-white hover:bg-gray-50">
+      <RefreshCw className="mr-2 h-4 w-4" />
+      Retry
+    </Button>
+  </div>
+);
 
 /**
  * MessageSigner component allows users to sign messages
@@ -13,6 +29,8 @@ export default function MessageSigner() {
   const { isConnected } = useAccount();
   const [signedMessage, setSignedMessage] = useState<string | null>(null);
   const [signedTypedData, setSignedTypedData] = useState<string | null>(null);
+  const [messageError, setMessageError] = useState<string | null>(null);
+  const [typedDataError, setTypedDataError] = useState<string | null>(null);
 
   // Sign standard message
   const {
@@ -21,6 +39,7 @@ export default function MessageSigner() {
     error: signMessageError,
     isError: isSignMessageError,
     signMessage,
+    reset: resetMessageSign,
   } = useSignMessage();
 
   // Sign typed data (EIP-712)
@@ -30,6 +49,7 @@ export default function MessageSigner() {
     error: signTypedDataError,
     isError: isSignTypedDataError,
     signTypedData,
+    reset: resetTypedDataSign,
   } = useSignTypedData();
 
   // Example message to sign
@@ -55,13 +75,50 @@ export default function MessageSigner() {
     },
   } as const;
 
+  // Update state and handle errors when signatures are available
+  useEffect(() => {
+    if (messageSignature) {
+      setSignedMessage(messageSignature);
+      setMessageError(null);
+    }
+
+    if (typedDataSignature) {
+      setSignedTypedData(typedDataSignature);
+      setTypedDataError(null);
+    }
+  }, [messageSignature, typedDataSignature]);
+
+  // Handle signature errors
+  useEffect(() => {
+    if (signMessageError) {
+      const { message } = errorLogger.categorizeWalletError(signMessageError);
+      setMessageError(message);
+      errorLogger.log(signMessageError, 'MessageSigner:StandardMessage');
+    } else {
+      setMessageError(null);
+    }
+
+    if (signTypedDataError) {
+      const { message } = errorLogger.categorizeWalletError(signTypedDataError);
+      setTypedDataError(message);
+      errorLogger.log(signTypedDataError, 'MessageSigner:TypedData');
+    } else {
+      setTypedDataError(null);
+    }
+  }, [signMessageError, signTypedDataError]);
+
   // Handle signing message
   const handleSignMessage = async () => {
     try {
       setSignedMessage(null);
+      resetMessageSign();
       signMessage({ message: exampleMessage });
     } catch (error) {
-      console.error('Failed to sign message:', error);
+      errorLogger.log(error, 'MessageSigner:StandardMessage');
+      if (error instanceof Error) {
+        const { message } = errorLogger.categorizeWalletError(error);
+        setMessageError(message);
+      }
     }
   };
 
@@ -69,29 +126,38 @@ export default function MessageSigner() {
   const handleSignTypedData = async () => {
     try {
       setSignedTypedData(null);
+      resetTypedDataSign();
       signTypedData(exampleTypedData);
     } catch (error) {
-      console.error('Failed to sign typed data:', error);
+      errorLogger.log(error, 'MessageSigner:TypedData');
+      if (error instanceof Error) {
+        const { message } = errorLogger.categorizeWalletError(error);
+        setTypedDataError(message);
+      }
     }
   };
 
-  // Update state when signatures are available
-  useState(() => {
-    if (messageSignature) {
-      setSignedMessage(messageSignature);
-    }
-    if (typedDataSignature) {
-      setSignedTypedData(typedDataSignature);
-    }
-  });
+  // Reset message signing
+  const resetMessageSigning = () => {
+    setSignedMessage(null);
+    setMessageError(null);
+    resetMessageSign();
+  };
+
+  // Reset typed data signing
+  const resetTypedDataSigning = () => {
+    setSignedTypedData(null);
+    setTypedDataError(null);
+    resetTypedDataSign();
+  };
 
   // Render error message
-  const renderError = (error: Error | null) => {
+  const renderError = (error: string | null) => {
     if (!error) return null;
     return (
-      <div className="mt-2 text-sm text-destructive flex items-center">
-        <AlertTriangle className="h-4 w-4 mr-1" />
-        {error.message.length > 100 ? `${error.message.substring(0, 100)}...` : error.message}
+      <div className="mt-2 text-sm text-destructive flex items-start">
+        <AlertTriangle className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
+        <span>{error}</span>
       </div>
     );
   };
@@ -109,66 +175,96 @@ export default function MessageSigner() {
   }
 
   return (
-    <div className="p-4 border rounded-lg bg-background">
-      <h3 className="text-sm font-medium mb-3">Sign Messages</h3>
+    <ErrorBoundary
+      fallback={MessageSignerFallback}
+      resetOnPropsChange={true}
+      onError={error => errorLogger.log(error, 'MessageSigner:Render')}
+    >
+      <div className="p-4 border rounded-lg bg-background">
+        <h3 className="text-sm font-medium mb-3">Sign Messages</h3>
 
-      <div className="space-y-4">
-        {/* Regular message signing */}
-        <div>
-          <Button
-            onClick={handleSignMessage}
-            disabled={isSigningMessage}
-            size="sm"
-            variant="outline"
-          >
-            {isSigningMessage ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing...
-              </>
-            ) : (
-              'Sign Message'
-            )}
-          </Button>
+        <div className="space-y-4">
+          {/* Regular message signing */}
+          <div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={handleSignMessage}
+                disabled={isSigningMessage}
+                size="sm"
+                variant="outline"
+              >
+                {isSigningMessage ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing...
+                  </>
+                ) : (
+                  'Sign Message'
+                )}
+              </Button>
 
-          {isSignMessageError && renderError(signMessageError)}
-
-          {signedMessage && (
-            <div className="mt-2 text-xs">
-              <div className="font-medium">Signature:</div>
-              <div className="mt-1 p-2 bg-muted rounded-md break-all">{signedMessage}</div>
+              {isSignMessageError && (
+                <Button size="sm" variant="outline" onClick={resetMessageSigning}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Reset
+                </Button>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Typed data signing */}
-        <div>
-          <Button
-            onClick={handleSignTypedData}
-            disabled={isSigningTypedData}
-            size="sm"
-            variant="outline"
-          >
-            {isSigningTypedData ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing typed data...
-              </>
-            ) : (
-              'Sign Typed Data'
+            {renderError(messageError)}
+
+            {signedMessage && (
+              <div className="mt-2 text-xs">
+                <div className="font-medium flex items-center">
+                  <span>Signature</span>
+                  <CheckCircle className="ml-1 h-3.5 w-3.5 text-green-500" />
+                </div>
+                <div className="mt-1 p-2 bg-muted rounded-md break-all">{signedMessage}</div>
+              </div>
             )}
-          </Button>
+          </div>
 
-          {isSignTypedDataError && renderError(signTypedDataError)}
+          {/* Typed data signing */}
+          <div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={handleSignTypedData}
+                disabled={isSigningTypedData}
+                size="sm"
+                variant="outline"
+              >
+                {isSigningTypedData ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing typed data...
+                  </>
+                ) : (
+                  'Sign Typed Data'
+                )}
+              </Button>
 
-          {signedTypedData && (
-            <div className="mt-2 text-xs">
-              <div className="font-medium">Typed Data Signature:</div>
-              <div className="mt-1 p-2 bg-muted rounded-md break-all">{signedTypedData}</div>
+              {isSignTypedDataError && (
+                <Button size="sm" variant="outline" onClick={resetTypedDataSigning}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Reset
+                </Button>
+              )}
             </div>
-          )}
+
+            {renderError(typedDataError)}
+
+            {signedTypedData && (
+              <div className="mt-2 text-xs">
+                <div className="font-medium flex items-center">
+                  <span>Typed Data Signature</span>
+                  <CheckCircle className="ml-1 h-3.5 w-3.5 text-green-500" />
+                </div>
+                <div className="mt-1 p-2 bg-muted rounded-md break-all">{signedTypedData}</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
