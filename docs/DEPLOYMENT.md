@@ -8,6 +8,21 @@
 - Vercel account
 - Farcaster account (for frame verification)
 
+## Pre-Deployment Checklist
+
+Before deploying, ensure:
+
+1. **ESM/CommonJS Compatibility**: Verify the project uses consistent module syntax
+   - Confirm `package.json` has the correct `"type": "commonjs"` setting
+   - Check that config files use appropriate syntax
+   - Run the app locally to confirm no module-related errors
+
+2. **Error Handling**: The application includes robust error handling
+   - Error boundaries on critical components
+   - Proper API error handling with retry logic
+   - User-friendly error messages for wallet operations
+   - Error logging system configured and working
+
 ## Environment Variables
 
 Ensure the following environment variables are set in your Vercel project:
@@ -33,6 +48,9 @@ NEXT_PUBLIC_FRAME_POST_URL=https://your-domain.com/api/frame
 ```bash
 # Install dependencies
 npm install
+
+# Clean the build cache
+rm -rf .next
 
 # Build locally to test
 npm run build
@@ -81,6 +99,7 @@ vercel --prod
 3. Verify environment variables are properly set
 4. Check frame discovery and interactions
 5. Verify database connections (if applicable)
+6. Test error handling by intentionally triggering errors
 
 ### 5. Monitoring
 
@@ -108,9 +127,22 @@ Monitor your deployment using:
    - Check for any missing or incorrect values
 
 3. **Build Failures**
+
    - Check build logs for errors
    - Verify all dependencies are installed
    - Check for any TypeScript or ESLint errors
+   
+4. **Module Errors**
+
+   - Ensure `package.json` has the correct `"type"` setting
+   - Check that configuration files use the right module syntax
+   - Verify that imported modules are compatible with your module system
+
+5. **Error Handling Issues**
+
+   - Verify error boundary components are properly implemented
+   - Check API error handling with retry logic is working
+   - Ensure error messages are user-friendly and informative
 
 ### Support
 

@@ -10,17 +10,19 @@ export interface PaginationProps {
   className?: string;
 }
 
+type PageIdentifier = number | 'ellipsis-start' | 'ellipsis-end';
+
 export function Pagination({ currentPage, totalPages, onPageChange, className }: PaginationProps) {
   // Generate an array of page numbers to show
   const getPageNumbers = () => {
-    const pages = [];
+    const pages: PageIdentifier[] = [];
 
     // Always show first page
     pages.push(1);
 
     // Calculate range around current page
-    let startPage = Math.max(2, currentPage - 1);
-    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    const startPage = Math.max(2, currentPage - 1);
+    const endPage = Math.min(totalPages - 1, currentPage + 1);
 
     // Show ellipsis after first page if needed
     if (startPage > 2) {

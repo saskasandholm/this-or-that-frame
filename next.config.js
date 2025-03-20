@@ -37,5 +37,5 @@ const nextConfig = {
   },
 };
 
-// A more sustainable approach for ES modules
-export default nextConfig;
+// Changed to CommonJS exports for compatibility with Next.js
+module.exports = nextConfig;

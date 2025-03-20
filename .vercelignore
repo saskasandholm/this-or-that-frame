@@ -1,1 +1,14 @@
 this-or-that-frame-backup.tar.gz
+.git
+.github
+node_modules
+temp_backup
+__tests__
+playwright
+*.log
+.env.local
+.env
+README.md
+CHANGELOG.md
+DIRECTORY_STRUCTURE.md
+VERCEL_DEPLOYMENT.md

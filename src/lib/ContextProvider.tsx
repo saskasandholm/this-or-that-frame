@@ -17,6 +17,9 @@ interface FrameContextType {
   friendVotes: { fid: string; choice: 'A' | 'B' }[] | null;
 }
 
+// Define the SDK context type (adjust according to the actual SDK type)
+type SDKContextType = any; // Replace with actual SDK context type if available
+
 // Default context state
 const defaultContextValue: FrameContextType = {
   isFrame: false,
@@ -57,7 +60,7 @@ export const FrameContextProvider: React.FC<{ children: React.ReactNode }> = ({ 
             }
 
             // In v0.0.31, context is accessed as a promise
-            let frameContext = null;
+            let frameContext: SDKContextType | null = null;
             try {
               if (sdk && sdk.context && typeof sdk.context.then === 'function') {
                 frameContext = await sdk.context;
@@ -88,14 +91,14 @@ export const FrameContextProvider: React.FC<{ children: React.ReactNode }> = ({ 
               }
 
               // Extract fid from context, handling different possible structures
-              let contextFid = null;
+              let contextFid: number | null = null;
               try {
                 // Handle different versions of the frame context structure
                 const typedContext = frameContext as {
                   user?: { fid?: number };
                   fid?: number;
                 };
-                contextFid = typedContext.user?.fid || typedContext.fid || null;
+                contextFid = (typedContext.user?.fid ?? typedContext.fid ?? null);
               } catch (e) {
                 console.error('Error extracting FID from context:', e);
               }

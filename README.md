@@ -13,9 +13,10 @@ The application is deployed and available at:
 
 To test the frame in Warpcast:
 
-1. Visit the [Warpcast Frame Validator](https://warpcast.com/~/developers/frames)
+1. Visit the [Warpcast Frame Playground](https://warpcast.com/~/developers/frames)
 2. Enter the frame URL: `https://frame-lovat.vercel.app/api`
-3. Follow the validator's instructions to test frame functionality
+3. Test different user contexts and wallet interactions directly in the playground
+4. Follow the playground's instructions to validate frame functionality
 
 For detailed testing instructions, see the [Frame Testing Guide](/docs/FRAME_TESTING.md).
 

@@ -2,30 +2,33 @@
 
 This document provides instructions for testing your Farcaster Frame after deployment.
 
-## Testing with Warpcast Frame Validator
+## Testing with Frame Playground
 
-The Warpcast Frame Validator is the official tool for testing Farcaster Frames. It allows you to test your frame's functionality without having to create a cast.
+The Warpcast Frame Playground is the official tool for testing Farcaster Frames. It provides enhanced testing capabilities for both v1 and v2 frames, including wallet interactions and dynamic content.
 
-### Step 1: Access the Validator
+### Step 1: Access the Playground
 
-1. Go to [Warpcast Frame Validator](https://warpcast.com/~/developers/frames)
+1. Go to [Warpcast Frame Playground](https://warpcast.com/~/developers/frames)
 2. You'll need to be logged into Warpcast to access this tool
 
 ### Step 2: Test the Frame
 
 1. Enter your frame URL: `https://frame-lovat.vercel.app/api`
-2. Click "Validate" to test the frame
+2. The playground will automatically validate your frame and show a preview
+3. You can test different user contexts and wallet interactions directly in the playground
 
 ### Step 3: Evaluate Results
 
-The validator will check:
+The playground will check:
 
-- Frame metadata (title, image)
+- Frame metadata (title, image, aspect ratio)
 - Response headers
 - Button functionality
 - POST request handling
+- Wallet integration
+- Dynamic content based on user context
 
-If any issues are found, the validator will show detailed error messages to help you troubleshoot.
+If any issues are found, the playground will show detailed error messages to help you troubleshoot.
 
 ## Expected Behaviors
 
@@ -49,7 +52,7 @@ If any issues are found, the validator will show detailed error messages to help
 
 ### Frame Not Loading
 
-If your frame doesn't load in the validator:
+If your frame doesn't load in the playground:
 
 1. **Check URL Format**: Make sure you're using `https://frame-lovat.vercel.app/api` (not `/api/frame`)
 2. **Verify API Route**: Ensure your API route is correctly implemented and responding to GET requests
@@ -77,7 +80,7 @@ If buttons don't trigger the expected actions:
 The wallet connection feature has specific behavior:
 
 1. **Testing Outside Warpcast**: The "Connect Wallet" button will show a warning icon when accessed directly - this is normal
-2. **Testing in Warpcast**: The wallet connection should work properly in the Frame Validator
+2. **Testing in Warpcast**: The wallet connection should work properly in the Frame Playground
 3. **Connection Flow**: When connected, the UI should update to show connected state and wallet address
 
 ## Advanced Testing Tips
@@ -107,3 +110,4 @@ Your frame may interact with other Farcaster features:
 - [Farcaster Frames Documentation](https://docs.farcaster.xyz/developers/frames/getting-started)
 - [Frames v2 Documentation](https://docs.farcaster.xyz/developers/frames/v2/getting-started)
 - [Farcaster Best Practices](https://docs.farcaster.xyz/developers/frames/best-practices)
+- [Warpcast Frame Playground](https://warpcast.com/~/developers/frames)

@@ -1,25 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { initFrameSDK } from '@/lib/frame-sdk';
 
-const WalletDetection = () => {
-  const [_hasFarcasterExtension, setHasFarcasterExtension] = useState(false);
-
+/**
+ * This component initializes the Frame SDK when the app loads
+ * It runs only on the client side and handles initialization once
+ */
+export default function WalletDetection() {
   useEffect(() => {
-    // Check if Farcaster extension is available
-    const checkFarcasterExtension = () => {
-      // @ts-expect-error - Farcaster extension types not available
-      const hasFarcaster = typeof window !== 'undefined' && !!window.farcaster;
-      setHasFarcasterExtension(hasFarcaster);
-    };
-
-    checkFarcasterExtension();
-
-    // We could also set up event listeners for wallet connection events here
+    // Initialize the Frame SDK
+    const sdk = initFrameSDK();
+    
+    if (sdk) {
+      console.log('Frame SDK detected and initialized');
+    }
   }, []);
 
-  // We're just detecting, not displaying anything in the UI currently
+  // This component doesn't render anything visible
   return null;
-};
-
-export default WalletDetection;
+}

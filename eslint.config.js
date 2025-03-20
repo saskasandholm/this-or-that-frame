@@ -1,98 +1,68 @@
-import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import tseslint from 'typescript-eslint';
-import globals from 'globals';
+const js = require('@eslint/js');
+const { FlatCompat } = require('@eslint/eslintrc');
+const eslintPluginPrettierRecommended = require('eslint-config-prettier');
+const globals = require('globals');
+const path = require('path');
 
-// Set up file paths for __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Create compatibility layer between new flat config and traditional config
+// @ts-check
 const compat = new FlatCompat({
-  baseDirectory: __dirname,
+  baseDirectory: path.join(__dirname, 'eslint.config.js'),
   recommendedConfig: js.configs.recommended,
 });
 
-export default [
-  // JavaScript base configuration
-  js.configs.recommended,
-
-  // Use Next.js configurations through compatibility layer
-  ...compat.extends('next/core-web-vitals'),
-
-  // Use typescript-eslint recommended configuration
-  ...tseslint.configs.recommended,
-
-  // Prettier integration - should come last to override other configs
-  ...compat.extends('prettier'),
-
-  // Common rules for all files
-  {
-    rules: {
-      // Disable problematic rules
-      'react/no-unescaped-entities': 'off',
-      'prefer-const': 'off',
-      'import/no-anonymous-default-export': 'off',
-      '@next/next/no-img-element': 'off',
-      'react-hooks/exhaustive-deps': 'off',
-    },
-  },
-
-  // Additional TypeScript rules
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    rules: {
-      // Customize TypeScript rules
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-unsafe-function-type': 'off',
-    },
-  },
-
-  // Jest configuration
-  {
-    files: ['**/*.test.js', '**/*.test.ts', '**/*.test.tsx', 'jest.setup.js'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-        jest: 'readonly',
-        describe: 'readonly',
-        it: 'readonly',
-        expect: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-      },
-    },
-  },
-
-  // Add ignores for build directories and config files
+module.exports = [
   {
     ignores: [
-      'node_modules/**',
+      '**/node_modules/**',
       '.next/**',
-      'out/**',
-      'build/**',
-      'public/**',
-      'coverage/**',
-      'test-results/**',
-      'playwright-report/**',
-      '**/*.config.js',
-      'scripts/**',
+      'next.config.js',
+      '.prettierrc.js',
+      '**/*.md',
+      '**/public/**',
+      '**/.vscode/**',
+      '**/.git/**',
+      'next-env.d.ts',
+      'postcss.config.js',
+      'tailwind.config.js',
+      '.eslintrc.js',
     ],
+  },
+  js.configs.recommended,
+  ...compat.extends(
+    'next/core-web-vitals',
+    'plugin:@typescript-eslint/recommended'
+  ),
+  eslintPluginPrettierRecommended,
+  {
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2021,
+      },
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: true,
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn'],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      '@typescript-eslint/no-empty-interface': 'warn',
+      '@typescript-eslint/no-empty-function': 'warn',
+      'react/display-name': 'off',
+      'react/no-unescaped-entities': 'off',
+      'react/prop-types': 'off',
+    },
   },
 ];

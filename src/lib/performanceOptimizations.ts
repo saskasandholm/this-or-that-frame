@@ -214,7 +214,7 @@ export function initPerformanceMonitoring(): void {
   // Report cumulative layout shift
   const reportCLS = () => {
     let clsValue = 0;
-    let clsEntries: PerformanceEntry[] = [];
+    const clsEntries: PerformanceEntry[] = [];
 
     new PerformanceObserver(entryList => {
       const entries = entryList.getEntries();
