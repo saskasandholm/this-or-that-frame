@@ -217,6 +217,8 @@ Based on our analysis of Farcaster's broader ecosystem, we've identified new opp
 
 ## Changelog
 
+- **2025-04-16**: ✅ Fixed ESM/CommonJS compatibility issue by converting all module imports/exports to CommonJS format
+- **2025-04-16**: 🔨 Documented ESM/CommonJS compatibility issue and solutions
 - **2025-04-15**: ✅ Implemented transaction sending, message signing, and token balance components
 - **2025-04-10**: ✅ Implemented Farcaster Frames wallet connector and basic wallet connection UI
 - **2025-04-02**: ✅ Fixed styling of Farcaster Auth-kit sign-in button to match application design
