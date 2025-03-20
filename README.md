@@ -9,6 +9,8 @@ The application is deployed and available at:
 - **Production URL**: [https://frame-lovat.vercel.app](https://frame-lovat.vercel.app)
 - **Frame API URL**: [https://frame-lovat.vercel.app/api](https://frame-lovat.vercel.app/api)
 
+[![Vercel Deployment Status](https://img.shields.io/badge/vercel-deployed-success)](https://frame-1epylemma-socialdaoai.vercel.app)
+
 ### Testing in Warpcast
 
 To test the frame in Warpcast:
