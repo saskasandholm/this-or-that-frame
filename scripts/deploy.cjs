@@ -5,8 +5,8 @@
  * Sets environment variables and handles deployment with necessary flags
  */
 
-import { execSync } from 'child_process';
-import dotenv from 'dotenv';
+const { execSync } = require('child_process');
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config();
@@ -19,7 +19,7 @@ const prodEnvVars = {
   NEXT_PUBLIC_FRAME_IMAGE_URL: 'https://frame-7rmy9wawk-saska-socials-projects.vercel.app/api/og',
   NEXT_PUBLIC_FRAME_POST_URL: 'https://frame-7rmy9wawk-saska-socials-projects.vercel.app/api/frame',
   SENTRY_ENVIRONMENT: 'production',
-  SKIP_SENTRY_SETUP: 'true', // Skip Sentry setup for now
+  SKIP_SENTRY_SETUP: 'true' // Skip Sentry setup for now
 };
 
 // Set environment variables for Vercel
@@ -29,15 +29,15 @@ console.log('Setting environment variables for Vercel deployment...');
 console.log('Deploying to Vercel...');
 try {
   let deployCommand = 'vercel';
-
+  
   // Add environment variables
   Object.entries(prodEnvVars).forEach(([key, value]) => {
     deployCommand += ` -e ${key}=${value}`;
   });
-
+  
   // Add deployment flags
   deployCommand += ' --prod --force';
-
+  
   // Execute the deploy command
   console.log(`Running: ${deployCommand}`);
   execSync(deployCommand, { stdio: 'inherit' });

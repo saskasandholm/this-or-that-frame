@@ -62,10 +62,15 @@ SENTRY_ENVIRONMENT=production
    - Updated array declaration to include type: `const pages: PageIdentifier[] = [];`
 
 3. Fixed TypeScript error in `src/lib/ContextProvider.tsx`:
+
    - Added SDK context type: `type SDKContextType = any;`
    - Fixed typing of frameContext variable: `let frameContext: SDKContextType | null = null;`
    - Fixed contextFid variable typing: `let contextFid: number | null = null;`
    - Changed OR operators to nullish coalescing operators: `contextFid = (typedContext.user?.fid ?? typedContext.fid ?? null);`
+
+4. Updated deployment script to use the correct URLs:
+   - Changed all references from old preview URL to the current production URL
+   - Renamed script to use .cjs extension for proper CommonJS compatibility
 
 ## Build Status
 
@@ -81,7 +86,7 @@ SENTRY_ENVIRONMENT=production
 
 1. Configure environment variables in the Vercel dashboard with the correct values
 2. Validate the frame using Warpcast's frame validator
-3. Update the `scripts/deploy.js` file with the new deployment URL for future deployments
+3. Update the `scripts/deploy.cjs` file with the new deployment URL for future deployments
 4. Test primary functionality to ensure everything works as expected
 
 ## Rollback Instructions
@@ -118,7 +123,7 @@ vercel --prod
 The project includes an automated deployment script that sets all necessary environment variables:
 
 ```
-node scripts/deploy.js
+node scripts/deploy.cjs
 ```
 
 This script:
