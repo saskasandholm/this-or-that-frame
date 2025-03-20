@@ -19,7 +19,8 @@
     "postinstall": "prisma generate",
     "verify-env": "node scripts/verify-env.js",
     "clean": "rm -rf .next",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prepare-production-db": "node scripts/prepare-production-db.mjs"
   },
   "prisma": {
     "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
