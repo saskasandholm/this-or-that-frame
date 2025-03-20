@@ -11,6 +11,8 @@ The application is deployed and available at:
 
 [![Vercel Deployment Status](https://img.shields.io/badge/vercel-deployed-success)](https://frame-1epylemma-socialdaoai.vercel.app)
 
+Auto-deployment from GitHub to Vercel is now configured properly.
+
 ### Testing in Warpcast
 
 To test the frame in Warpcast:
