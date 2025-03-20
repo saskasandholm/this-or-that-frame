@@ -1,0 +1,109 @@
+# Frame Testing Guide
+
+This document provides instructions for testing your Farcaster Frame after deployment.
+
+## Testing with Warpcast Frame Validator
+
+The Warpcast Frame Validator is the official tool for testing Farcaster Frames. It allows you to test your frame's functionality without having to create a cast.
+
+### Step 1: Access the Validator
+
+1. Go to [Warpcast Frame Validator](https://warpcast.com/~/developers/frames)
+2. You'll need to be logged into Warpcast to access this tool
+
+### Step 2: Test the Frame
+
+1. Enter your frame URL: `https://frame-lovat.vercel.app/api`
+2. Click "Validate" to test the frame
+
+### Step 3: Evaluate Results
+
+The validator will check:
+
+- Frame metadata (title, image)
+- Response headers
+- Button functionality
+- POST request handling
+
+If any issues are found, the validator will show detailed error messages to help you troubleshoot.
+
+## Expected Behaviors
+
+### Initial Load
+
+- The frame should load with an image and buttons
+- Any text content should be visible and formatted correctly
+
+### Button Interactions
+
+- Clicking buttons should trigger the appropriate actions
+- Post-click frames should load correctly with updated content
+
+### Wallet Functionality
+
+- The "Connect Wallet" button will only function properly within the Farcaster client environment
+- When testing directly via web browser, it will show a warning icon (this is expected)
+- When testing in Warpcast, wallet connection should work as intended
+
+## Troubleshooting Common Issues
+
+### Frame Not Loading
+
+If your frame doesn't load in the validator:
+
+1. **Check URL Format**: Make sure you're using `https://frame-lovat.vercel.app/api` (not `/api/frame`)
+2. **Verify API Route**: Ensure your API route is correctly implemented and responding to GET requests
+3. **Check Environment Variables**: Verify all environment variables are set correctly in Vercel
+4. **Inspect Server Logs**: Look at Vercel logs for any errors in the API route
+
+### Image Not Displaying
+
+If the frame image isn't showing:
+
+1. **Check Image URL**: Verify `NEXT_PUBLIC_FRAME_IMAGE_URL` is set correctly
+2. **Image Size**: Ensure the image meets Farcaster's requirements (ratio of 1.91:1 recommended)
+3. **CORS Issues**: Make sure your server allows cross-origin requests for images
+
+### Button Actions Not Working
+
+If buttons don't trigger the expected actions:
+
+1. **Verify POST Endpoint**: Check that your `/api/frame` endpoint correctly handles POST requests
+2. **Button Configuration**: Confirm button labels and targets are correctly defined
+3. **Response Format**: Ensure your API returns properly formatted Frame responses
+
+### Wallet Connection Issues
+
+The wallet connection feature has specific behavior:
+
+1. **Testing Outside Warpcast**: The "Connect Wallet" button will show a warning icon when accessed directly - this is normal
+2. **Testing in Warpcast**: The wallet connection should work properly in the Frame Validator
+3. **Connection Flow**: When connected, the UI should update to show connected state and wallet address
+
+## Advanced Testing Tips
+
+### Testing Different Scenarios
+
+1. **User Authentication**: Test both authenticated and unauthenticated states
+2. **Error Handling**: Intentionally trigger errors to ensure graceful degradation
+3. **Multiple Interactions**: Test multi-step flows that require several button clicks
+
+### Performance Considerations
+
+1. **Response Time**: Frame responses should be fast (under 300ms ideally)
+2. **Image Optimization**: Ensure images are properly optimized for quick loading
+3. **Caching**: Implement appropriate caching headers for static assets
+
+## Integration with Farcaster Ecosystem
+
+Your frame may interact with other Farcaster features:
+
+1. **User Context**: Test how your frame uses the fid and other user information
+2. **Casts**: If your frame creates casts, verify they appear correctly
+3. **Notifications**: If implemented, test that notifications work as expected
+
+## Resources
+
+- [Farcaster Frames Documentation](https://docs.farcaster.xyz/developers/frames/getting-started)
+- [Frames v2 Documentation](https://docs.farcaster.xyz/developers/frames/v2/getting-started)
+- [Farcaster Best Practices](https://docs.farcaster.xyz/developers/frames/best-practices)

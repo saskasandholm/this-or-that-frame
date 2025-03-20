@@ -4,7 +4,7 @@ This document tracks changes made to the configuration for Vercel deployment.
 
 ## Deployment Date
 
-- Date: $(date)
+- Date: March 21, 2024
 
 ## Existing Configuration
 
@@ -18,7 +18,7 @@ The following environment variables need to be set in the Vercel dashboard:
 
 ```
 # Required
-NEXT_PUBLIC_APP_URL=https://frame-7rmy9wawk-saska-socials-projects.vercel.app
+NEXT_PUBLIC_APP_URL=https://frame-lovat.vercel.app
 
 # Database URL (if using PostgreSQL or other DB on Vercel)
 DATABASE_URL=
@@ -27,8 +27,8 @@ DATABASE_URL=
 NEXTAUTH_SECRET=
 
 # Frame URLs (update with production URLs)
-NEXT_PUBLIC_FRAME_IMAGE_URL=https://frame-7rmy9wawk-saska-socials-projects.vercel.app/api/og
-NEXT_PUBLIC_FRAME_POST_URL=https://frame-7rmy9wawk-saska-socials-projects.vercel.app/api/frame
+NEXT_PUBLIC_FRAME_IMAGE_URL=https://frame-lovat.vercel.app/api/og
+NEXT_PUBLIC_FRAME_POST_URL=https://frame-lovat.vercel.app/api/frame
 
 # Sentry configuration (optional)
 SENTRY_DSN=
@@ -75,12 +75,33 @@ SENTRY_ENVIRONMENT=production
 ## Build Status
 
 - ✅ Local build successful
-- TypeScript errors fixed
+- ✅ TypeScript errors fixed
 - ✅ Deployed to Vercel
+- ✅ Build completed successfully with minor warnings (related to OpenTelemetry dependencies)
 
 ## Deployment URL
 
-- Preview: https://frame-7rmy9wawk-saska-socials-projects.vercel.app
+- Production: https://frame-lovat.vercel.app
+
+## Frame Validation
+
+To validate that your frame is working correctly:
+
+1. Visit the Warpcast Frame Validator at https://warpcast.com/~/developers/frames
+2. Enter your frame API URL: https://frame-lovat.vercel.app/api
+3. The validator will check:
+   - Frame metadata and image URL validity
+   - Button functionality
+   - POST request handling
+   - Frame response structure
+
+### Expected Behaviors
+
+#### Wallet Integration
+
+- The "Connect Wallet" button will show a warning icon when accessed directly via web browser. This is expected behavior.
+- Wallet connection only works properly when the frame is accessed through the Farcaster client (Warpcast).
+- This is because the wallet connector requires the Farcaster Frame SDK context which is only available in the Farcaster client environment.
 
 ## Post-Deployment Steps
 
@@ -103,6 +124,7 @@ If you need to revert any changes:
 2. ✅ Fix TypeScript errors for successful build
 3. ✅ Set up environment variables in Vercel
 4. ✅ Deploy project to Vercel
+5. ✅ Validate frame functionality
 
 ## Deployment Commands
 
@@ -134,3 +156,30 @@ This script:
 4. Uses `--prod` and `--force` flags for a production deployment
 
 You may need to update the script with the current deployment URL if you create a new deployment.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Frame Not Detected**
+
+   - Make sure your frame API URL is correct (https://frame-lovat.vercel.app/api)
+   - Verify that all environment variables are set correctly
+   - Check server logs for any API errors
+
+2. **Wallet Connection Issues**
+
+   - Remember that wallet connection only works within the Farcaster client
+   - The warning icon is expected when viewing directly on the web
+   - Test wallet functionality through the Warpcast Frame Validator
+
+3. **Environment Variable Problems**
+   - If the frame doesn't display correctly, check that all environment variables are set
+   - Ensure URLs are using the correct domain (frame-lovat.vercel.app)
+
+## Future Maintenance
+
+1. When updating the project, always test changes locally before deploying
+2. After deployment, validate frame functionality using the Warpcast Frame Validator
+3. Keep the deployment script updated with the current production URL
+4. Monitor Vercel logs for any errors or performance issues

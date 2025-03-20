@@ -2,6 +2,23 @@
 
 A web application that presents binary choices to users, collects votes, and shows community results. Built as a Farcaster Frame with Next.js and Prisma.
 
+## Production Deployment
+
+The application is deployed and available at:
+
+- **Production URL**: [https://frame-lovat.vercel.app](https://frame-lovat.vercel.app)
+- **Frame API URL**: [https://frame-lovat.vercel.app/api](https://frame-lovat.vercel.app/api)
+
+### Testing in Warpcast
+
+To test the frame in Warpcast:
+
+1. Visit the [Warpcast Frame Validator](https://warpcast.com/~/developers/frames)
+2. Enter the frame URL: `https://frame-lovat.vercel.app/api`
+3. Follow the validator's instructions to test frame functionality
+
+For detailed testing instructions, see the [Frame Testing Guide](/docs/FRAME_TESTING.md).
+
 ## Features
 
 - **Interactive Voting Interface**: Engaging UI for making binary choices
@@ -12,6 +29,7 @@ A web application that presents binary choices to users, collects votes, and sho
 - **Admin Dashboard**: Manage topics and monitor engagement
 - **Trending & Past Topics**: Browse popular topics and see voting history
 - **Farcaster Authentication**: Sign in with your Farcaster account to track voting history and achievements
+- **Wallet Integration**: Connect your Farcaster wallet to enable transactions (Frames v2)
 
 ## Demo
 
@@ -21,6 +39,7 @@ Check out the various components of the application in our demo pages:
 - [Did You Know Facts](/demo/did-you-know)
 - [Direct Challenge](/demo/direct-challenge)
 - [Frame Save Prompt](/demo/frame-save)
+- [Wallet Demo](/wallet-demo) - Test wallet connection functionality (works in Farcaster client)
 
 ## Tech Stack
 
@@ -30,6 +49,7 @@ Check out the various components of the application in our demo pages:
 - **Animations**: Framer Motion
 - **Integration**: Farcaster Frame SDK
 - **Authentication**: Farcaster Auth-kit
+- **Wallet Integration**: Wagmi, Viem, Frames SDK wallet connector
 - **Monitoring**: Sentry for error tracking, Vercel Analytics for performance
 
 ## Getting Started
@@ -77,6 +97,8 @@ Create a `.env` file in the root directory with:
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-secret-key"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_FRAME_IMAGE_URL="http://localhost:3000/api/og"
+NEXT_PUBLIC_FRAME_POST_URL="http://localhost:3000/api/frame"
 SENTRY_DSN="your-sentry-dsn" # Optional, for error tracking
 ```
 
@@ -101,6 +123,8 @@ The project has comprehensive documentation organized into logical categories in
 - **[Project Overview](/docs/PROJECT_OVERVIEW.md)** - High-level overview of the project
 - **[Setup Guide](/docs/SETUP.md)** - Detailed environment setup instructions
 - **[Deployment Guide](/docs/DEPLOYMENT.md)** - How to deploy the application
+- **[Vercel Deployment](/VERCEL_DEPLOYMENT.md)** - Vercel-specific deployment details
+- **[Frame Testing Guide](/docs/FRAME_TESTING.md)** - How to test frames in Warpcast
 - **[Troubleshooting](/docs/TROUBLESHOOTING.md)** - Solutions to common problems
 
 ### Architecture & Implementation
@@ -166,6 +190,7 @@ This application implements the Farcaster Frame v2 specification, allowing it to
 - API endpoints for frame interactions
 - Frame state management
 - Dynamic OG images for topics and results
+- Wallet integration for blockchain transactions
 
 For more details, see the [Frame Implementation Documentation](/docs/FRAME_IMPLEMENTATION.md).
 

@@ -14,10 +14,10 @@ dotenv.config();
 // Define environment variables for production deployment
 const prodEnvVars = {
   // Updated to the latest production URL
-  NEXT_PUBLIC_APP_URL: 'https://frame-7rmy9wawk-saska-socials-projects.vercel.app',
+  NEXT_PUBLIC_APP_URL: 'https://frame-lovat.vercel.app',
   DATABASE_URL: process.env.DATABASE_URL || 'file:./prod.db',
-  NEXT_PUBLIC_FRAME_IMAGE_URL: 'https://frame-7rmy9wawk-saska-socials-projects.vercel.app/api/og',
-  NEXT_PUBLIC_FRAME_POST_URL: 'https://frame-7rmy9wawk-saska-socials-projects.vercel.app/api/frame',
+  NEXT_PUBLIC_FRAME_IMAGE_URL: 'https://frame-lovat.vercel.app/api/og',
+  NEXT_PUBLIC_FRAME_POST_URL: 'https://frame-lovat.vercel.app/api/frame',
   SENTRY_ENVIRONMENT: 'production',
   SKIP_SENTRY_SETUP: 'true' // Skip Sentry setup for now
 };
