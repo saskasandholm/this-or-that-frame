@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const FRAME_IMAGE_URL = process.env.NEXT_PUBLIC_FRAME_IMAGE_URL || `${APP_URL}/api/og`;
+  const FRAME_POST_URL = process.env.NEXT_PUBLIC_FRAME_POST_URL || `${APP_URL}/api/frame`;
 
   return NextResponse.json({
     accountAssociation: {
@@ -16,17 +18,17 @@ export async function GET() {
       name: 'This or That?',
       homeUrl: APP_URL,
       iconUrl: `${APP_URL}/api/splash`,
-      imageUrl: `${APP_URL}/api/og`,
+      imageUrl: FRAME_IMAGE_URL,
       buttonTitle: 'Open App',
       splashImageUrl: `${APP_URL}/api/splash`,
       splashBackgroundColor: '#1a202c',
-      webhookUrl: `${APP_URL}/api/frame`,
+      webhookUrl: FRAME_POST_URL,
     },
     triggers: [
       {
         type: 'cast',
         id: 'vote',
-        url: `${APP_URL}/api/frame`,
+        url: FRAME_POST_URL,
         name: 'Vote',
       },
     ],
