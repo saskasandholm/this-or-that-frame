@@ -6,6 +6,11 @@ This document tracks changes made to the configuration for Vercel deployment.
 
 - Date: March 21, 2024
 
+## Current Deployment
+
+- Production URL: https://frame-1epylemma-socialdaoai.vercel.app
+- Frame API URL: https://frame-1epylemma-socialdaoai.vercel.app/api
+
 ## Existing Configuration
 
 - `vercel.json` - Already configured with basic Next.js deployment settings
@@ -18,7 +23,7 @@ The following environment variables need to be set in the Vercel dashboard:
 
 ```
 # Required
-NEXT_PUBLIC_APP_URL=https://frame-lovat.vercel.app
+NEXT_PUBLIC_APP_URL=https://frame-1epylemma-socialdaoai.vercel.app
 
 # Database URL (if using PostgreSQL or other DB on Vercel)
 DATABASE_URL=
@@ -27,13 +32,20 @@ DATABASE_URL=
 NEXTAUTH_SECRET=
 
 # Frame URLs (update with production URLs)
-NEXT_PUBLIC_FRAME_IMAGE_URL=https://frame-lovat.vercel.app/api/og
-NEXT_PUBLIC_FRAME_POST_URL=https://frame-lovat.vercel.app/api/frame
+NEXT_PUBLIC_FRAME_IMAGE_URL=https://frame-1epylemma-socialdaoai.vercel.app/api/og
+NEXT_PUBLIC_FRAME_POST_URL=https://frame-1epylemma-socialdaoai.vercel.app/api/frame
 
 # Sentry configuration (optional)
 SENTRY_DSN=
 SENTRY_ENVIRONMENT=production
 ```
+
+## Deployment Configuration
+
+- GitHub Integration: Enabled (auto-deploys on push to main branch)
+- Build Command: `next build`
+- Output Directory: `.next`
+- Install Command: `yarn install`
 
 ## Changes Made During Deployment
 
@@ -79,17 +91,13 @@ SENTRY_ENVIRONMENT=production
 - ✅ Deployed to Vercel
 - ✅ Build completed successfully with minor warnings (related to OpenTelemetry dependencies)
 
-## Deployment URL
-
-- Production: https://frame-lovat.vercel.app
-
 ## Frame Validation
 
 To validate that your frame is working correctly:
 
-1. Visit the Warpcast Frame Validator at https://warpcast.com/~/developers/frames
-2. Enter your frame API URL: https://frame-lovat.vercel.app/api
-3. The validator will check:
+1. Visit the Warpcast Frame Playground at https://warpcast.com/~/developers/frames
+2. Enter your frame API URL: https://frame-1epylemma-socialdaoai.vercel.app/api
+3. The playground will check:
    - Frame metadata and image URL validity
    - Button functionality
    - POST request handling
@@ -106,8 +114,8 @@ To validate that your frame is working correctly:
 ## Post-Deployment Steps
 
 1. Configure environment variables in the Vercel dashboard with the correct values
-2. Validate the frame using Warpcast's frame validator
-3. Update the `scripts/deploy.cjs` file with the new deployment URL for future deployments
+2. Validate the frame using Warpcast's Frame Playground
+3. Update the `scripts/deploy.js` file with the new deployment URL for future deployments
 4. Test primary functionality to ensure everything works as expected
 
 ## Rollback Instructions
@@ -130,32 +138,17 @@ If you need to revert any changes:
 
 ### Manual Deployment
 
-```
-vercel
-```
-
-For production deployment:
-
-```
-vercel --prod
+```bash
+vercel deploy --prod
 ```
 
 ### Automated Deployment
 
-The project includes an automated deployment script that sets all necessary environment variables:
+The project is set up for automatic deployments:
 
-```
-node scripts/deploy.cjs
-```
-
-This script:
-
-1. Loads environment variables from `.env`
-2. Sets predefined environment variables for production
-3. Executes Vercel deployment with all environment variables
-4. Uses `--prod` and `--force` flags for a production deployment
-
-You may need to update the script with the current deployment URL if you create a new deployment.
+1. Push changes to the `main` branch
+2. Vercel will automatically detect changes and start a new deployment
+3. Monitor deployment status in the Vercel dashboard
 
 ## Troubleshooting
 
@@ -163,7 +156,7 @@ You may need to update the script with the current deployment URL if you create 
 
 1. **Frame Not Detected**
 
-   - Make sure your frame API URL is correct (https://frame-lovat.vercel.app/api)
+   - Make sure your frame API URL is correct (https://frame-1epylemma-socialdaoai.vercel.app/api)
    - Verify that all environment variables are set correctly
    - Check server logs for any API errors
 
@@ -171,15 +164,15 @@ You may need to update the script with the current deployment URL if you create 
 
    - Remember that wallet connection only works within the Farcaster client
    - The warning icon is expected when viewing directly on the web
-   - Test wallet functionality through the Warpcast Frame Validator
+   - Test wallet functionality through the Warpcast Frame Playground
 
 3. **Environment Variable Problems**
    - If the frame doesn't display correctly, check that all environment variables are set
-   - Ensure URLs are using the correct domain (frame-lovat.vercel.app)
+   - Ensure URLs are using the correct domain (frame-1epylemma-socialdaoai.vercel.app)
 
 ## Future Maintenance
 
 1. When updating the project, always test changes locally before deploying
-2. After deployment, validate frame functionality using the Warpcast Frame Validator
+2. After deployment, validate frame functionality using the Warpcast Frame Playground
 3. Keep the deployment script updated with the current production URL
 4. Monitor Vercel logs for any errors or performance issues

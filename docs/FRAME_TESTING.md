@@ -13,7 +13,7 @@ The Warpcast Frame Playground is the official tool for testing Farcaster Frames.
 
 ### Step 2: Test the Frame
 
-1. Enter your frame URL: `https://frame-lovat.vercel.app/api`
+1. Enter your frame URL: `https://frame-1epylemma-socialdaoai.vercel.app/api`
 2. The playground will automatically validate your frame and show a preview
 3. You can test different user contexts and wallet interactions directly in the playground
 
@@ -54,7 +54,7 @@ If any issues are found, the playground will show detailed error messages to hel
 
 If your frame doesn't load in the playground:
 
-1. **Check URL Format**: Make sure you're using `https://frame-lovat.vercel.app/api` (not `/api/frame`)
+1. **Check URL Format**: Make sure you're using `https://frame-1epylemma-socialdaoai.vercel.app/api`
 2. **Verify API Route**: Ensure your API route is correctly implemented and responding to GET requests
 3. **Check Environment Variables**: Verify all environment variables are set correctly in Vercel
 4. **Inspect Server Logs**: Look at Vercel logs for any errors in the API route
