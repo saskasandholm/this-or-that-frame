@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google';
 import './globals.css';
-import WalletDetection from '@/components/WalletDetection';
 import NavigationBar from '@/components/NavigationBar';
 import { cn } from '@/lib/utils';
 import { Analytics } from '@vercel/analytics/react';
 import { Providers } from './providers';
 import '@farcaster/auth-kit/styles.css';
+
+// Import the error monitoring system initialization
+import ErrorMonitoringInitializer from '@/components/ErrorMonitoringInitializer';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -18,6 +20,23 @@ export const metadata: Metadata = {
   description: 'A daily choice game that reveals what the Farcaster community really thinks',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
 };
+
+// Global error handler for client-side code
+function ErrorHandler() {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('error', (event) => {
+      console.error('Global error caught:', event.error);
+    });
+    
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Global unhandled rejection:', event.reason);
+      // Prevent the error from propagating to Next.js error handler
+      event.preventDefault();
+    });
+  }
+  
+  return null;
+}
 
 export default function RootLayout({
   children,
@@ -34,7 +53,10 @@ export default function RootLayout({
         style={{ overscrollBehaviorX: 'auto' }}
       >
         <Providers>
-          <WalletDetection />
+          {/* Add error monitoring initializer */}
+          <ErrorMonitoringInitializer />
+          {/* Add global error handler */}
+          <ErrorHandler />
           <div className="relative flex min-h-screen flex-col">
             <NavigationBar />
             <main className="flex-1 pt-16">{children}</main>

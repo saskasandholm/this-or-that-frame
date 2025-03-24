@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// This project uses SQLite for local development and
+// PostgreSQL with Supabase for production deployment
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  fid         Int      @unique
+  username    String?
+  displayName String?
+  pfpUrl      String?
+  custody     String?
+  lastLogin   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([fid])
+}
+
+model Category {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  description String?
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  topics      Topic[]
+  submissions TopicSubmission[]
+}
+
+model Topic {
+  id           Int              @id @default(autoincrement())
+  name         String
+  categoryId   Int
+  optionA      String
+  optionB      String
+  imageA       String?
+  imageB       String?
+  votesA       Int              @default(0)
+  votesB       Int              @default(0)
+  startDate    DateTime         @default(now())
+  endDate      DateTime?
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  submissionId Int?
+  submission   TopicSubmission? @relation(fields: [submissionId], references: [id])
+  category     Category         @relation(fields: [categoryId], references: [id])
+  votes        Vote[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([startDate, endDate])
+  @@index([submissionId])
+}
+
+model Vote {
+  id         Int        @id @default(autoincrement())
+  topicId    Int
+  fid        Int
+  choice     String
+  timestamp  DateTime   @default(now())
+  userStreak UserStreak @relation(fields: [fid], references: [fid], onDelete: Cascade)
+  topic      Topic      @relation(fields: [topicId], references: [id])
+
+  @@unique([topicId, fid])
+  @@index([topicId])
+  @@index([fid])
+}
+
+model UserStreak {
+  id            Int               @id @default(autoincrement())
+  fid           Int               @unique
+  currentStreak Int               @default(1)
+  longestStreak Int               @default(1)
+  lastVoteDate  DateTime          @default(now())
+  totalVotes    Int               @default(1)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  submissions   TopicSubmission[]
+  achievements  UserAchievement[]
+  votes         Vote[]
+}
+
+model Achievement {
+  id          Int                    @id @default(autoincrement())
+  name        String                 @unique
+  description String
+  badgeIcon   String
+  badgeColor  String
+  threshold   Int
+  type        String
+  category    String                 @default("general")
+  tier        Int                    @default(1)
+  rarity      String                 @default("common")
+  isShareable Boolean                @default(true)
+  shareImage  String?
+  createdAt   DateTime               @default(now())
+  users       UserAchievement[]
+  shares      UserAchievementShare[]
+}
+
+model UserAchievement {
+  id            Int                    @id @default(autoincrement())
+  fid           Int
+  achievementId Int
+  earnedAt      DateTime               @default(now())
+  progress      Int                    @default(0)
+  achievement   Achievement            @relation(fields: [achievementId], references: [id])
+  userStreak    UserStreak             @relation(fields: [fid], references: [fid], onDelete: Cascade)
+  shares        UserAchievementShare[]
+
+  @@unique([fid, achievementId])
+  @@index([fid])
+  @@index([achievementId])
+}
+
+model UserAchievementShare {
+  id                Int             @id @default(autoincrement())
+  fid               Int
+  achievementId     Int
+  userAchievementId Int
+  platform          String
+  sharedAt          DateTime        @default(now())
+  achievement       Achievement     @relation(fields: [achievementId], references: [id])
+  userAchievement   UserAchievement @relation(fields: [userAchievementId], references: [id])
+
+  @@index([fid])
+  @@index([achievementId])
+  @@index([userAchievementId])
+}
+
+model TopicSubmission {
+  id         Int        @id @default(autoincrement())
+  name       String
+  optionA    String
+  optionB    String
+  categoryId Int
+  fid        Int
+  status     String     @default("pending")
+  reason     String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  reviewedAt DateTime?
+  reviewedBy Int?
+  topics     Topic[]
+  userStreak UserStreak @relation(fields: [fid], references: [fid], onDelete: Cascade)
+  category   Category   @relation(fields: [categoryId], references: [id])
+
+  @@index([fid])
+  @@index([categoryId])
+  @@index([status])
+  @@index([reviewedBy])
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  fid         Int      @unique
+  isActive    Boolean  @default(true)
+  permissions String   @default("moderate")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   Int?
+
+  @@index([fid])
+}
+
+model UserActivity {
+  id         Int      @id @default(autoincrement())
+  fid        Int
+  action     String
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  entityType String?
+  entityId   Int?
+  timestamp  DateTime @default(now())
+
+  @@index([fid])
+  @@index([action])
+  @@index([timestamp])
+  @@index([entityType, entityId])
+}

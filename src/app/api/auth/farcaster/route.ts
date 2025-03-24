@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAppClient, viemConnector } from '@farcaster/auth-client';
 import { prisma } from '@/lib/prisma';
 import { trackError } from '@/lib/error-tracking';
+import type { VerifyResponse } from '@farcaster/auth-client';
 
-// Primary auth cookie for regular browsing
+// Simplified cookie configuration
 const AUTH_COOKIE_CONFIG = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -12,16 +13,16 @@ const AUTH_COOKIE_CONFIG = {
   path: '/',
 };
 
-// Mobile browsers often need SameSite=None
+// Mobile-specific cookie configuration
 const MOBILE_COOKIE_CONFIG = {
   httpOnly: true,
-  secure: true, // Must be secure for SameSite=None
+  secure: true,
   sameSite: 'none' as const,
-  maxAge: 60 * 60 * 24 * 30, // 30 days
+  maxAge: 60 * 60 * 24 * 30,
   path: '/',
 };
 
-// Check cookie is visible to JavaScript
+// Non-httpOnly cookie for client-side detection
 const CHECK_COOKIE_CONFIG = {
   httpOnly: false,
   secure: process.env.NODE_ENV === 'production',
@@ -30,7 +31,7 @@ const CHECK_COOKIE_CONFIG = {
   path: '/',
 };
 
-// Mobile check cookie with appropriate settings
+// Mobile check cookie
 const MOBILE_CHECK_COOKIE_CONFIG = {
   httpOnly: false,
   secure: true,
@@ -41,30 +42,18 @@ const MOBILE_CHECK_COOKIE_CONFIG = {
 
 /**
  * Get possible domain values for verification
- * This is needed because the domain in the signature might vary
  */
 function getDomainOptions(): string[] {
   const configuredDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || '';
-
-  // Create an array of possible domains to try
   const domains = [
     configuredDomain,
-    configuredDomain.replace(/^https?:\/\//, ''), // Without protocol
+    configuredDomain.replace(/^https?:\/\//, ''),
     'localhost',
     'localhost:3000',
-    'frame.frog.pub', // If this is your production domain
-  ].filter(Boolean); // Remove empty strings
-
-  return Array.from(new Set(domains)); // Remove duplicates
-}
-
-/**
- * Detects if the request is likely from a mobile device
- */
-function isMobileRequest(req: NextRequest, isMobileFlag?: boolean): boolean {
-  if (isMobileFlag === true) return true;
-  const userAgent = req.headers.get('user-agent') || '';
-  return /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    'frame.frog.pub',
+  ].filter(Boolean);
+  
+  return Array.from(new Set(domains));
 }
 
 /**
@@ -72,25 +61,20 @@ function isMobileRequest(req: NextRequest, isMobileFlag?: boolean): boolean {
  */
 function extractFidFromMessage(message: Record<string, unknown> | string): number | null {
   try {
-    // If message is an object with fid
     if (typeof message === 'object' && message !== null && 'fid' in message) {
       return typeof message.fid === 'number' ? message.fid : null;
     }
 
-    // Try to parse JSON if it's a string
     if (typeof message === 'string') {
       try {
         const parsed = JSON.parse(message);
         if (parsed && typeof parsed.fid === 'number') {
           return parsed.fid;
         }
-
-        // Sometimes FID is inside a nested data structure
         if (parsed && parsed.payload && typeof parsed.payload.fid === 'number') {
           return parsed.payload.fid;
         }
       } catch {
-        // Not valid JSON, try to extract FID using regex
         const fidMatch = message.match(/fid['":\s]+(\d+)/i);
         if (fidMatch && fidMatch[1]) {
           const parsedFid = parseInt(fidMatch[1], 10);
@@ -110,23 +94,20 @@ function extractFidFromMessage(message: Record<string, unknown> | string): numbe
 
 /**
  * Farcaster authentication handler
- * Verifies the signature and creates a server-side session
  */
 export async function POST(req: NextRequest) {
-  console.log('[Server Auth] Starting authentication process');
+  console.log('[Auth API] Starting authentication process');
 
   try {
-    const { signature, message, nonce, isMobile, userAgent } = await req.json();
-
-    console.log('[Server Auth] Request data:', {
-      hasSignature: !!signature,
-      hasMessage: !!message,
-      isMobile,
-      userAgentLength: userAgent ? userAgent.length : 0,
-      messageType: typeof message,
+    const { signature, message, nonce, isMobile } = await req.json();
+    console.log('[Auth API] Request received', { 
+      hasSignature: !!signature, 
+      hasMessage: !!message, 
+      isMobile: !!isMobile 
     });
 
     if (!signature || !message) {
+      console.log('[Auth API] Missing signature or message');
       return NextResponse.json({ error: 'Missing signature or message' }, { status: 400 });
     }
 
@@ -136,161 +117,47 @@ export async function POST(req: NextRequest) {
       ethereum: viemConnector(),
     });
 
-    let verifyResponse;
-    let fid: number | null = null;
-    let verificationSuccess = false;
-    const messageStr = typeof message === 'string' ? message : JSON.stringify(message);
-
-    // Try extracting FID first as a fallback
-    const extractedFid = extractFidFromMessage(message);
-
-    // Get all possible domains to try
-    const domainOptions = getDomainOptions();
-    console.log('[Server Auth] Will try verification with domains:', domainOptions);
+    // List of domains to try for verification
+    const domains = ['localhost', 'localhost:3000'];
+    console.log('[Auth API] Will try verification with domains:', domains);
 
     // Try verification with each domain
-    const errors: Array<{ domain: string; error: string }> = [];
-    for (const domain of domainOptions) {
+    let verifyResult: VerifyResponse | null = null;
+    for (const domain of domains) {
       try {
-        console.log(`[Server Auth] Trying verification with domain: ${domain}`);
-        verifyResponse = await appClient.verifySignInMessage({
-          message: messageStr,
+        console.log(`[Auth API] Trying verification with domain: ${domain}`);
+        const result = await appClient.verifySignInMessage({
+          message: typeof message === 'string' ? message : JSON.stringify(message),
           signature: signature as `0x${string}`,
-          domain: domain,
+          domain,
           nonce: nonce || undefined,
         });
-
-        if (verifyResponse && verifyResponse.fid) {
-          fid = verifyResponse.fid;
-          verificationSuccess = true;
-          console.log(`[Server Auth] Verification succeeded with domain: ${domain}`);
+        
+        if (result && result.fid) {
+          verifyResult = result;
+          console.log(`[Auth API] Verification succeeded with domain: ${domain}`);
           break;
         }
       } catch (error) {
-        errors.push({ domain, error: error instanceof Error ? error.message : String(error) });
-        console.error(`[Server Auth] Verification error with domain ${domain}:`, error);
+        console.error(`[Auth API] Verification failed with domain ${domain}:`, error);
       }
     }
 
-    // Log verification results
-    console.log('[Server Auth] Verification results:', {
-      success: verificationSuccess,
+    if (!verifyResult || !verifyResult.fid) {
+      console.log('[Auth API] Verification failed for all domains');
+      return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+    }
+
+    const fid = verifyResult.fid;
+    console.log(`[Auth API] User authenticated with FID: ${fid}`);
+
+    // User data to store
+    const userData = {
       fid,
-      errors: errors.length > 0 ? errors : undefined,
-    });
-
-    // If standard verification failed, use extracted FID as fallback
-    if (!fid && extractedFid) {
-      console.log('[Server Auth] Using extracted FID as fallback:', extractedFid);
-      fid = extractedFid;
-    }
-
-    if (!fid) {
-      return NextResponse.json(
-        {
-          error: 'Invalid signature or unable to verify',
-          details: 'Could not extract valid FID',
-          tried: domainOptions,
-          errors,
-        },
-        { status: 401 }
-      );
-    }
-
-    // Extract user data from message if available
-    type UserData = {
-      fid: number;
-      username: string;
-      displayName: string;
-      pfpUrl: string;
-      [key: string]: unknown;
+      username: verifyResult.userInfo?.username || '',
+      displayName: verifyResult.userInfo?.displayName || verifyResult.userInfo?.username || '',
+      pfpUrl: verifyResult.userInfo?.pfp?.url || '',
     };
-
-    let userData: UserData;
-
-    try {
-      // Try to extract user data from message
-      let messageObj: Record<string, any> = {};
-      
-      // Handle different message formats
-      if (typeof message === 'object' && message !== null) {
-        messageObj = message as Record<string, any>;
-        console.log('[Server Auth] Message is already an object:', { 
-          keys: Object.keys(messageObj),
-          messageType: typeof message
-        });
-      } else if (typeof message === 'string') {
-        try {
-          // First check if it's valid JSON
-          if (message.trim().startsWith('{') && message.trim().endsWith('}')) {
-            messageObj = JSON.parse(message);
-            console.log('[Server Auth] Successfully parsed message as JSON');
-          } else {
-            // Handle SIWE message format which contains key-value pairs
-            console.log('[Server Auth] Message is not JSON, treating as SIWE message string:', { 
-              messageLength: message.length,
-              messageSample: message.substring(0, 100) + '...'
-            });
-            
-            // Try to extract data from SIWE message format
-            const fidMatch = message.match(/fid:\s*(\d+)/i);
-            const usernameMatch = message.match(/username:\s*([^,\n]+)/i);
-            const displayNameMatch = message.match(/displayName:\s*([^,\n]+)/i);
-            
-            if (fidMatch && fidMatch[1]) {
-              const extractedFid = parseInt(fidMatch[1], 10);
-              if (!isNaN(extractedFid)) {
-                messageObj.fid = extractedFid;
-              }
-            }
-            
-            if (usernameMatch && usernameMatch[1]) {
-              messageObj.username = usernameMatch[1].trim();
-            }
-            
-            if (displayNameMatch && displayNameMatch[1]) {
-              messageObj.displayName = displayNameMatch[1].trim();
-            }
-            
-            console.log('[Server Auth] Extracted from SIWE message:', messageObj);
-          }
-        } catch (parseError) {
-          console.error('[Server Auth] JSON parse error:', parseError);
-          // We'll continue with the empty messageObj
-        }
-      }
-                   
-      // If Farcaster returns verification data with user profile, prefer that
-      if (verifyResponse && verifyResponse.userInfo) {
-        console.log('[Server Auth] Using user info from verification response');
-        userData = {
-          fid,
-          username: verifyResponse.userInfo.username || '',
-          displayName: verifyResponse.userInfo.displayName || verifyResponse.userInfo.username || '',
-          pfpUrl: verifyResponse.userInfo.pfp?.url || '',
-        };
-      } else {
-        // Otherwise use data from message
-        console.log('[Server Auth] Using data from message object');
-        userData = {
-          fid,
-          username: messageObj.username || '',
-          displayName: messageObj.displayName || messageObj.username || '',
-          pfpUrl: messageObj.pfpUrl || '',
-        };
-      }
-      
-      console.log('[Server Auth] Final user data:', {
-        fid: userData.fid,
-        username: userData.username || '[none]',
-        displayName: userData.displayName || '[none]',
-        pfpUrl: userData.pfpUrl ? 'present' : 'absent'
-      });
-    } catch (_error) {
-      console.error('[Server Auth] Error processing user data:', _error);
-      // Minimal fallback if we can't extract user data but have a valid FID
-      userData = { fid, username: '', displayName: '', pfpUrl: '' };
-    }
 
     // Store or update user in database
     try {
@@ -310,62 +177,26 @@ export async function POST(req: NextRequest) {
           lastLogin: new Date(),
         },
       });
-      console.log('[Server Auth] User data saved to database');
+      console.log('[Auth API] User data saved to database');
     } catch (dbError) {
-      console.error('[Server Auth] Database error:', dbError);
-      // Continue even if database fails - we can still set cookies
+      console.error('[Auth API] Database error:', dbError);
+      // Continue even if DB operation fails
     }
 
-    // Create response with auth cookie
+    // Create response with cookie
     const response = NextResponse.json({
       success: true,
       user: userData,
     });
 
-    // Determine if request is from mobile
-    const isMobileDevice = isMobileRequest(req, isMobile);
-    const userDataStr = JSON.stringify(userData);
-
-    console.log('[Server Auth] Setting cookies for device type:', {
-      isMobile: isMobileDevice,
-      cookieValueLength: userDataStr.length,
-    });
-
-    // Set cookies with different configurations
-    // Main auth cookie - use mobile config for mobile devices
-    response.cookies.set(
-      'farcaster_auth',
-      userDataStr,
-      isMobileDevice ? MOBILE_COOKIE_CONFIG : AUTH_COOKIE_CONFIG
-    );
-
-    // Always set a check cookie that's visible to JavaScript
-    response.cookies.set(
-      'farcaster_auth_check',
-      'true',
-      isMobileDevice ? MOBILE_CHECK_COOKIE_CONFIG : CHECK_COOKIE_CONFIG
-    );
-
-    // For compatibility, always set a fallback cookie with different SameSite
-    if (isMobileDevice) {
-      // Set a lax cookie as fallback for mobile
-      response.cookies.set('farcaster_auth_lax', userDataStr, AUTH_COOKIE_CONFIG);
-      response.cookies.set('farcaster_auth_check_lax', 'true', CHECK_COOKIE_CONFIG);
-    } else {
-      // Set a none cookie as fallback for desktop
-      response.cookies.set('farcaster_auth_none', userDataStr, MOBILE_COOKIE_CONFIG);
-      response.cookies.set('farcaster_auth_check_none', 'true', MOBILE_CHECK_COOKIE_CONFIG);
-    }
-
-    console.log('[Server Auth] Auth complete, cookies set:', {
-      cookieCount: response.cookies.getAll().length,
-      cookieNames: response.cookies.getAll().map(c => c.name),
-      cookieHeaders: response.headers.get('set-cookie'),
-    });
-
+    // Set cookie with appropriate config based on device type
+    const cookieConfig = isMobile ? MOBILE_COOKIE_CONFIG : AUTH_COOKIE_CONFIG;
+    response.cookies.set('farcaster_auth', JSON.stringify(userData), cookieConfig);
+    
+    console.log('[Auth API] Authentication complete, cookie set');
     return response;
   } catch (error) {
-    console.error('[Server Auth] Error:', error);
+    console.error('[Auth API] Unexpected error:', error);
     trackError('Farcaster authentication error', { error });
     return NextResponse.json(
       {

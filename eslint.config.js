@@ -12,19 +12,51 @@ const compat = new FlatCompat({
 
 module.exports = [
   {
+    // Move all ignores from .eslintignore to here
     ignores: [
+      // Build output
       '**/node_modules/**',
       '.next/**',
+      'out/**',
+      
+      // Dependencies
+      '**/node_modules/**',
+      
+      // Logs
+      '**/*.log',
+      
+      // Environment variables
+      '.env*',
+      
+      // Misc system files
+      '**/.DS_Store',
+      '**/.idea/**',
+      '**/.vscode/**',
+      '**/*.pem',
+      
+      // Config files that don't need lint checking
       'next.config.js',
       '.prettierrc.js',
-      '**/*.md',
-      '**/public/**',
-      '**/.vscode/**',
-      '**/.git/**',
-      'next-env.d.ts',
       'postcss.config.js',
       'tailwind.config.js',
-      '.eslintrc.js',
+      'jest.config.js',
+      'jest.setup.js',
+      'sentry.*.config.js',
+      
+      // Scripts directory
+      'scripts/**',
+      
+      // Markdown files
+      '**/*.md',
+      
+      // Public assets
+      '**/public/**',
+      
+      // TypeScript declaration files
+      'next-env.d.ts',
+      
+      // Prisma
+      'prisma/**',
     ],
   },
   js.configs.recommended,
@@ -54,15 +86,37 @@ module.exports = [
       reportUnusedDisableDirectives: true,
     },
     rules: {
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn'],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // Basic rules
+      'no-unused-vars': 'off', // Turned off in favor of TypeScript version
+      
+      // TypeScript rules - increase severity for critical issues
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true 
+      }],
+      '@typescript-eslint/no-explicit-any': 'error', // Upgrade from warning to error
+      '@typescript-eslint/no-require-imports': 'off', // Disable for JS config files
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/no-empty-interface': 'warn',
       '@typescript-eslint/no-empty-function': 'warn',
+      '@typescript-eslint/no-unsafe-function-type': 'warn',
+      
+      // React rules
       'react/display-name': 'off',
       'react/no-unescaped-entities': 'off',
       'react/prop-types': 'off',
+      
+      // React Hooks rules - properly enforce hooks rules
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      
+      // Next.js rules
+      '@next/next/no-img-element': 'warn',
+      
+      // Best practices
+      'prefer-const': 'error',
+      'import/no-anonymous-default-export': 'warn',
     },
   },
 ];

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -13,10 +13,14 @@ import {
   LayoutDashboard,
   Sparkles,
   Wallet,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SignInButton } from '@/components/SignInButton';
-import WalletConnectionButton from '@/components/WalletConnectionButton';
+import { useAuth } from '@/context/AuthContext';
+import { useAdmin } from '@/hooks/useAdmin';
+import UserProfile from '@/components/UserProfile';
+import { useProfile } from '@farcaster/auth-kit';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +29,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SignOutButton } from '@/components/SignOutButton';
+
+// Client-only component to safely use hooks
+const ClientOnly = ({ children }: { children: React.ReactNode }) => {
+  const [mounted, setMounted] = useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  if (!mounted) return null;
+  
+  return <>{children}</>;
+};
 
 export default function NavigationBar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
+  const { isAuthenticated } = useProfile();
+
+  console.log('[NavigationBar] Auth state:', { isAuthenticated });
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -35,6 +57,37 @@ export default function NavigationBar() {
 
   const closeMenu = () => {
     setIsOpen(false);
+  };
+
+  // Auth profile dropdown
+  const AuthMenu = () => {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="ml-2">
+            <UserProfile showDetails={false} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Your Account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <Link href="/profile">
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+          </Link>
+          <Link href="/settings">
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+          </Link>
+          <DropdownMenuSeparator />
+          <Link href="/auth-test">
+            <DropdownMenuItem>Auth Test Page</DropdownMenuItem>
+          </Link>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <SignOutButton />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
   };
 
   return (
@@ -94,12 +147,14 @@ export default function NavigationBar() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link href="/admin/1">
-              <Button variant="ghost" size="sm" className="flex items-center">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Admin
-              </Button>
-            </Link>
+            {isAuthenticated && !isAdminLoading && isAdmin && (
+              <Link href="/admin">
+                <Button variant="ghost" size="sm" className="flex items-center">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Admin
+                </Button>
+              </Link>
+            )}
 
             <Link href="/docs">
               <Button variant="ghost" size="sm" className="flex items-center">
@@ -109,15 +164,14 @@ export default function NavigationBar() {
             </Link>
 
             <div className="ml-2">
-              <SignInButton />
-            </div>
-
-            <div className="ml-2">
-              <WalletConnectionButton />
+              {isAuthenticated ? <AuthMenu /> : <SignInButton />}
             </div>
           </nav>
 
           <div className="flex md:hidden items-center">
+            {isAuthenticated && (
+              <AuthMenu />
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -189,16 +243,20 @@ export default function NavigationBar() {
               </Button>
             </Link>
 
-            <div className="border-t border-border pt-2">
-              <p className="px-3 py-1 text-sm font-medium text-muted-foreground">Admin</p>
-            </div>
+            {isAuthenticated && !isAdminLoading && isAdmin && (
+              <>
+                <div className="border-t border-border pt-2">
+                  <p className="px-3 py-1 text-sm font-medium text-muted-foreground">Admin</p>
+                </div>
 
-            <Link href="/admin/1" onClick={closeMenu}>
-              <Button variant="ghost" className="w-full justify-start">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Admin Dashboard
-              </Button>
-            </Link>
+                <Link href="/admin" onClick={closeMenu}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Admin Dashboard
+                  </Button>
+                </Link>
+              </>
+            )}
 
             <Link href="/docs" onClick={closeMenu}>
               <Button variant="ghost" className="w-full justify-start">
@@ -208,11 +266,15 @@ export default function NavigationBar() {
             </Link>
 
             <div className="border-t border-border pt-4 mt-2">
-              <SignInButton className="w-full" />
-            </div>
-
-            <div className="mt-2">
-              <WalletConnectionButton />
+              {!isAuthenticated && <SignInButton className="w-full" />}
+              {isAuthenticated && (
+                <Link href="/auth-test" onClick={closeMenu}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    <UserProfile showDetails={false} />
+                    <span className="ml-2">View Profile</span>
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </motion.div>

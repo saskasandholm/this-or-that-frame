@@ -2,6 +2,14 @@
 
 A web application that presents binary choices to users, collects votes, and shows community results. Built as a Farcaster Frame with Next.js and Prisma.
 
+## Recent Improvements
+
+- **Database Connection Fix**: Resolved Prisma connection issues with Supabase by properly formatting connection strings
+- **Frame Manifest Enhancement**: Updated the Farcaster Frame manifest with improved documentation for production implementation
+- **Dynamic Image Generation**: Added dynamic splash image generation through the `/api/splash` endpoint
+- **Directory Structure Cleanup**: Removed redundant files and streamlined project organization
+- **Documentation Updates**: Enhanced documentation reflecting the current project state
+
 ## Production Deployment
 
 The application is deployed and available at:
@@ -79,32 +87,82 @@ Check out the various components of the application in our demo pages:
    npm install
    ```
 
-3. Set up the database:
+3. Set up the environment:
+
+   Create a `.env.local` file with the following:
+
+   ```
+   # Development SQLite database
+   DATABASE_URL="file:./prisma/dev.db"
+   DIRECT_URL="file:./prisma/dev.db"
+
+   # Local URLs
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   NEXT_PUBLIC_FRAME_POST_URL="http://localhost:3000/api/frame"
+   NEXT_PUBLIC_FRAME_IMAGE_URL="http://localhost:3000/api/og"
+   NEXT_PUBLIC_ALLOW_DEMO_FID=true
+   ```
+
+4. Set up the database:
 
    ```bash
    npx prisma generate
    npx prisma db push
+   npm run seed
    ```
 
-4. Start the development server:
+5. Start the development server:
 
    ```bash
    npm run dev
    ```
 
-5. Visit `http://localhost:3000` to see the application
+6. Visit `http://localhost:3000` to see the application
 
 ### Environment Variables
 
-Create a `.env` file in the root directory with:
+The application uses different environment variables for development and production:
+
+#### Development (SQLite)
+
+For local development with SQLite, use these in `.env.local`:
 
 ```
-DATABASE_URL="file:./dev.db"
-NEXTAUTH_SECRET="your-secret-key"
+DATABASE_URL="file:./prisma/dev.db"
+DIRECT_URL="file:./prisma/dev.db"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_FRAME_IMAGE_URL="http://localhost:3000/api/og"
 NEXT_PUBLIC_FRAME_POST_URL="http://localhost:3000/api/frame"
-SENTRY_DSN="your-sentry-dsn" # Optional, for error tracking
+NEXT_PUBLIC_FRAME_IMAGE_URL="http://localhost:3000/api/og"
+NEXT_PUBLIC_ALLOW_DEMO_FID=true
+```
+
+#### Production (PostgreSQL)
+
+For production with PostgreSQL, set these in your production environment:
+
+```
+# Transaction pooler connection (for Prisma Client)
+DATABASE_URL="postgresql://user:password@host:6543/db?pgbouncer=true&sslmode=require"
+
+# Direct connection (for migrations)
+DIRECT_URL="postgresql://user:password@host:5432/db?sslmode=require"
+
+NEXT_PUBLIC_APP_URL="https://your-production-domain.com"
+NEXT_PUBLIC_FRAME_POST_URL="https://your-production-domain.com/api/frame"
+NEXT_PUBLIC_FRAME_IMAGE_URL="https://your-production-domain.com/api/og"
+```
+
+For Farcaster authentication in production:
+
+```
+NEXT_PUBLIC_FARCASTER_AUTH_DOMAIN="your-domain.xyz"
+NEXT_PUBLIC_FARCASTER_AUTH_CALLBACK_URL="https://your-production-domain.com/api/auth/farcaster"
+```
+
+Optional monitoring with Sentry:
+
+```
+SENTRY_DSN="your-sentry-dsn"
 ```
 
 ## Project Structure

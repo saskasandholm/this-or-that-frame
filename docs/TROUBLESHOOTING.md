@@ -15,6 +15,185 @@ This guide contains solutions for common issues you might encounter while workin
 - [Image Loading Issues](#image-loading-issues)
 - [Friend Leaderboard and Pagination Issues](#friend-leaderboard-and-pagination-issues)
 - [React Server Component Issues](#react-server-component-issues)
+- [Supabase and Prisma Connection Issues](#supabase-and-prisma-connection-issues)
+- [Prisma Client Browser Issues](#prisma-client-browser-issues)
+
+## Next.js 15 and Prisma Database Configuration Issues
+
+### Problem: "PrismaClient is unable to be run in the browser" Error
+
+Next.js 15 has stricter separation between server and client components, which can lead to Prisma initialization errors if not properly configured.
+
+**Symptoms:**
+- Error messages in console: "PrismaClient is unable to be run in the browser"
+- Build failures related to Prisma imports in client components
+- Runtime errors when accessing database functions from client-side code
+
+**Solutions:**
+
+1. **Use the environment-aware Prisma singleton:**
+
+   The application uses a browser-safe Prisma implementation in `src/lib/prisma.ts`:
+
+   ```typescript
+   // Check if we're running on the browser
+   const isBrowser = typeof window !== 'undefined';
+
+   // Initialize PrismaClient safely (only on server)
+   export const prisma = isBrowser
+     ? (null as unknown as PrismaClient) // Return null for browser environment
+     : globalForPrisma.prisma ?? new PrismaClient(prismaOptions);
+   ```
+
+2. **Use named exports instead of default exports:**
+
+   Make sure you're importing the `prisma` named export, not a default export:
+
+   ```typescript
+   // CORRECT:
+   import { prisma } from '@/lib/prisma';
+
+   // INCORRECT:
+   import prisma from '@/lib/prisma';
+   ```
+
+3. **Use the data access layer:**
+
+   Instead of using Prisma directly in components, use the data access functions in `src/lib/db.ts`:
+
+   ```typescript
+   // In server component:
+   import { getCurrentTopic } from '@/lib/db';
+
+   // Then use it:
+   const topic = await getCurrentTopic();
+   ```
+
+4. **Add "use server" directive when needed:**
+
+   For server actions or client components that need to make database calls:
+
+   ```typescript
+   'use server';
+   
+   import { prisma } from '@/lib/prisma';
+   
+   export async function serverAction(data: FormData) {
+     // Safe to use prisma here
+     return prisma.topic.findMany();
+   }
+   ```
+
+5. **Clear caches if issues persist:**
+
+   ```bash
+   # Remove .next directory
+   rm -rf .next
+   
+   # Run a clean build
+   npm run clean && npm run build
+   ```
+
+### Problem: SQLite Database Connection Issues
+
+When working with SQLite in development, you might encounter connection errors.
+
+**Symptoms:**
+- Error: "Database file does not exist"
+- Connection timeout errors
+- Schema synchronization failures
+
+**Solutions:**
+
+1. **Verify database file existence:**
+
+   ```bash
+   ls -la prisma/dev.db
+   ```
+
+2. **Check connection URL format:**
+
+   The SQLite connection URL must use the `file:` protocol:
+
+   ```
+   DATABASE_URL="file:./prisma/dev.db"
+   ```
+
+3. **Create a new database file if needed:**
+
+   ```bash
+   # Remove existing database
+   rm -f prisma/dev.db
+   
+   # Push schema to create new database
+   npx prisma db push
+   ```
+
+4. **Run the environment setup script:**
+
+   ```bash
+   node scripts/setup-env.js
+   ```
+
+5. **Verify schema file consistency:**
+
+   Ensure that `schema.prisma` matches the database type you're using:
+
+   ```bash
+   # For development (SQLite)
+   cat prisma/schema.development.prisma
+   
+   # Check active schema
+   cat prisma/schema.prisma
+   ```
+
+### Problem: PostgreSQL Connection Issues in Production
+
+When deploying to production with PostgreSQL, you might encounter connection issues.
+
+**Symptoms:**
+- Error: "Connection refused"
+- Timeout errors when connecting to PostgreSQL
+- Prisma query failures in production
+
+**Solutions:**
+
+1. **Verify connection strings:**
+
+   You need both a pooled connection URL and a direct URL:
+
+   ```
+   # Transaction pooler connection (for Prisma Client)
+   DATABASE_URL="postgresql://user:password@host:6543/db?pgbouncer=true&sslmode=require"
+   
+   # Direct connection (for Prisma migrations)
+   DIRECT_URL="postgresql://user:password@host:5432/db?sslmode=require"
+   ```
+
+2. **URL-encode special characters:**
+
+   If your password contains special characters, ensure they're URL-encoded:
+   
+   ```
+   # Example: If password contains #, it becomes %23
+   # Original: password#123
+   # Encoded: password%23123
+   ```
+
+3. **Check schema file:**
+
+   Ensure you're using the PostgreSQL schema in production:
+
+   ```bash
+   # Should be using PostgreSQL provider
+   grep "provider" prisma/schema.prisma
+   ```
+
+4. **Run setup script with production env:**
+
+   ```bash
+   NODE_ENV=production node scripts/setup-env.js
+   ```
 
 ## UI Styling Issues
 
@@ -988,3 +1167,235 @@ const transformedData = apiData.map((item, index) => ({
 - [shadcn/ui Documentation](https://ui.shadcn.com)
 
 If you encounter an issue not covered in this guide, please add it along with the solution to help future developers.
+
+## Supabase and Prisma Connection Issues
+
+### Common Errors
+
+1. **"Error querying the database: db error: ERROR: relation "Topic" does not exist"**
+   - This error occurs when the database schema hasn't been properly migrated.
+   - Run `npx prisma migrate deploy` to apply all migrations.
+
+2. **"Error: P1001: Can't reach database server"**
+   - This typically indicates network connectivity issues or incorrect database URL.
+   - Verify your network can reach the Supabase instance.
+   - Check that your IP address is in the Supabase allowlist.
+
+3. **"Error: P1003: Database does not exist"**
+   - This could indicate either the database name in your connection string is incorrect, or the database hasn't been created.
+   - Verify the database name in your connection string matches what's in Supabase.
+
+### Verifying Connection Strings
+
+Your `.env` file should contain properly formatted connection strings:
+
+```
+DATABASE_URL="postgres://postgres.[project_ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgres://postgres.[project_ref]:[password]@aws-0-[region].supabase.com:5432/postgres"
+```
+
+- `DATABASE_URL` uses connection pooling (port 6543) and should have `?pgbouncer=true`
+- `DIRECT_URL` is a direct connection (port 5432) with no query parameters
+
+### Testing Database Connection
+
+You can test your database connection with:
+
+```bash
+npx prisma db execute --stdin < test.sql
+```
+
+Where `test.sql` is a simple SQL command like:
+
+```sql
+SELECT NOW();
+```
+
+### Setting Up Prisma User
+
+If you need to create a dedicated Prisma user in Supabase:
+
+```sql
+-- Create the user
+CREATE USER prisma WITH PASSWORD 'your_secure_password';
+
+-- Grant necessary permissions (adjust as needed for your schema)
+GRANT USAGE ON SCHEMA public TO prisma;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO prisma;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO prisma;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO prisma;
+
+-- Allow prisma to create new tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO prisma;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO prisma;
+```
+
+Then update your connection strings in `.env` to use the `prisma` user instead of `postgres`.
+
+## Farcaster Frame SDK Issues
+
+### Common Errors
+
+1. **"WagmiProviderNotFoundError: 'useConfig' must be used within 'WagmiProvider'"**
+   - This error occurs when trying to use Wagmi hooks outside of the WagmiProvider context
+   - It's common when running the application outside of a Farcaster Frame environment
+   - Our app has been updated to handle both frame and non-frame environments
+
+2. **"Failed to initialize Farcaster Frame SDK"**
+   - This is expected when running the app in a regular browser instead of a Farcaster client
+   - The Frame SDK is only available when the app is loaded within a Farcaster Frame
+
+3. **"Cannot set property ethereum of #&lt;Window&gt; which has only a getter"**
+   - This is a common error when the Frame SDK tries to interact with the wallet provider
+   - The error is now handled with proper fallbacks for non-frame environments
+
+### Debugging Frame SDK Issues
+
+For development, we've added enhanced logging:
+
+- Check the browser console for "Frame environment detected: true/false" 
+- Look for WagmiProvider initialization logs
+- The app will now use fallback providers when not in a frame environment
+
+### Testing in Frame Environment
+
+To properly test the application in a Farcaster Frame:
+
+1. Run the development server: `npm run dev`
+2. Set up a tunnel to your local server: `ngrok http 3000`
+3. Use the Warpcast Frame Validator with your ngrok URL
+4. Alternatively, create a Cast with a Frame pointing to your ngrok URL
+
+## Next.js and React Issues
+
+### Build Errors
+
+1. **"Error: No ESLint configuration found"**
+   - Run `npm run lint:fix` to auto-fix linting issues
+   - Check that all ESLint dependencies are installed
+
+2. **"Type error: Property 'X' is missing in type 'Y'"**
+   - Check the TypeScript interface definitions for the component
+   - Ensure all required props are being passed
+
+### Runtime Errors
+
+1. **"React Hook useEffect has a missing dependency"**
+   - Add the missing variable to the dependency array
+   - Or use a proper useCallback/useMemo if it's a function or object
+
+2. **"Error: Text content does not match server-rendered HTML"**
+   - This is a hydration error, typically caused by code that assumes client-side execution
+   - Ensure components that use browser APIs are properly marked with 'use client'
+   - Use dynamic imports with { ssr: false } for components that must be client-only
+
+## Deployment Issues
+
+1. **"Error: Failed to detect NEXTAUTH_URL"**
+   - Set the NEXTAUTH_URL environment variable in your deployment platform
+
+2. **"Error: Prisma cannot find the schema"**
+   - Make sure that the Prisma schema is properly generated before deployment
+   - Add `postinstall: prisma generate` to your package.json scripts
+
+3. **"Error: API resolved without sending a response"**
+   - Check that all API routes properly return a Response object
+   - Ensure all async operations are properly awaited
+
+For any other issues not covered here, please check the logs carefully and search the issue tracker before opening a new issue.
+
+## Prisma Client Browser Issues
+
+### Error: "PrismaClient is unable to run in this browser environment"
+
+#### Problem
+
+If you're getting the error:
+```
+Error: PrismaClient is unable to run in this browser environment, or has been bundled for the browser (e.g. by webpack, Rollup, or similar).
+```
+
+This happens because Prisma Client is a Node.js library that cannot run in the browser. In Next.js applications, this typically occurs when:
+
+1. A client component directly imports the Prisma client
+2. A server component with Prisma imports is rendered on the client
+3. Next.js tries to render a component with Prisma code during hydration
+
+#### Solution
+
+We've implemented a browser-safe Prisma setup to prevent this error:
+
+1. **Use the data access layer**
+
+   Never import the Prisma client directly in client components. Instead, use the dedicated data access functions from `src/lib/db.ts`:
+
+   ```typescript
+   // WRONG - will cause browser errors
+   import { prisma } from '@/lib/prisma';
+   
+   // RIGHT - only in server components
+   import { getCurrentTopic } from '@/lib/db';
+   ```
+
+2. **Mark components as server components**
+
+   For Next.js App Router, the default is server components. If you're using Prisma, make sure your component is a server component:
+
+   ```typescript
+   // This is a server component that can safely use Prisma
+   export default async function MyPage() {
+     // Safe to use db utilities here
+     const topic = await getCurrentTopic();
+     // ...
+   }
+   ```
+
+3. **Use Server Actions for mutations**
+
+   For database mutations, use server actions to handle the database interaction:
+
+   ```typescript
+   // actions.ts
+   'use server';
+   
+   import { submitVote } from '@/lib/db';
+   
+   export async function handleVote(topicId: number, fid: number, choice: string) {
+     return await submitVote(topicId, fid, choice);
+   }
+   ```
+
+4. **Handle Client/Server Boundaries**
+
+   When you need data in client components, fetch it in a server component and pass it down as props:
+
+   ```typescript
+   // Server component
+   export default async function Page() {
+     const topic = await getCurrentTopic();
+     return <ClientComponent topic={topic} />;
+   }
+   
+   // Client component
+   'use client';
+   export function ClientComponent({ topic }) {
+     // Use the data safely here
+   }
+   ```
+
+5. **Dynamic Imports with Loading Fallbacks**
+
+   For components that need Prisma but must be client-side, use dynamic imports with SSR disabled:
+
+   ```typescript
+   import dynamic from 'next/dynamic';
+   
+   const ServerDataComponent = dynamic(
+     () => import('./ServerDataComponent'),
+     { ssr: false, loading: () => <LoadingFallback /> }
+   );
+   ```
+
+### Error: "Error in PrismaClient constructor: Unable to find Node.js"
+
+If you see this error along with browser errors, it's related to the same issue - Prisma is trying to run in a browser environment. Follow the solutions above to fix it.

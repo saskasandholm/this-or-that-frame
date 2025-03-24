@@ -1,7 +1,12 @@
-import { track } from '@vercel/analytics';
+import { track as trackClient } from '@vercel/analytics';
+import { track as trackServer } from '@vercel/analytics/server';
+
+// Check if we're in a browser environment
+const isClient = typeof window !== 'undefined';
 
 /**
  * Track an event with Vercel Analytics.
+ * Uses the appropriate tracking function based on environment.
  * 
  * @param eventName - The name of the event to track
  * @param properties - Additional properties to associate with the event
@@ -10,7 +15,18 @@ export function trackEvent(
   eventName: string,
   properties?: Record<string, string | number | boolean>
 ) {
-  track(eventName, properties);
+  try {
+    if (isClient) {
+      // Client-side tracking
+      trackClient(eventName, properties);
+    } else {
+      // Server-side tracking
+      trackServer(eventName, properties);
+    }
+  } catch (error) {
+    console.error('Analytics error:', error);
+    // Don't fail the app if analytics fails
+  }
 }
 
 /**

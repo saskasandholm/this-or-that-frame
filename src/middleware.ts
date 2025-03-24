@@ -1,26 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  // Get auth cookie
-  const authCookie = request.cookies.get('farcaster_auth');
+// Define routes that should be protected
+const PROTECTED_ROUTES = [
+  '/admin',
+  '/admin/(.*)',
+  '/submit',
+  '/profile'
+];
 
-  // Check for protected routes
-  if (
-    request.nextUrl.pathname.startsWith('/profile') ||
-    request.nextUrl.pathname.startsWith('/submit-topic') ||
-    (request.nextUrl.pathname.startsWith('/admin') &&
-      !request.nextUrl.pathname.startsWith('/admin/login'))
-  ) {
-    // If no auth cookie, redirect to home page with a login param
-    if (!authCookie) {
-      return NextResponse.redirect(new URL('/?login=required', request.url));
+/**
+ * Middleware function to protect routes
+ * Note: Authentication state is primarily managed by Farcaster Auth Kit client-side
+ * This middleware only handles server-side route protection
+ */
+export function middleware(req: NextRequest) {
+  const { pathname, searchParams } = req.nextUrl;
+  const isAuthRedirect = searchParams.has('auth');
+  
+  // Check for auth cookie (simple check, we rely on client-side auth for most functionality)
+  const authCookie = req.cookies.get('farcaster_auth');
+  const checkCookie = req.cookies.get('farcaster_auth_check');
+  const isAuthenticated = !!authCookie?.value || !!checkCookie?.value;
+  
+  // Check if this is a protected route
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => {
+    if (route.endsWith('(.*)')) {
+      return pathname.startsWith(route.replace('(.*)', ''));
     }
+    return pathname === route;
+  });
+  
+  // Redirect to login page if accessing protected route without auth
+  if (isProtectedRoute && !isAuthenticated) {
+    console.log('[Middleware] Redirecting unauthenticated user from protected route');
+    return NextResponse.redirect(new URL('/?login=required', req.url));
   }
-
+  
+  // Special handling for auth redirect to clean up URL
+  if (isAuthRedirect) {
+    const cleanUrl = new URL(req.url);
+    cleanUrl.searchParams.delete('auth');
+    cleanUrl.searchParams.delete('t');
+    cleanUrl.searchParams.delete('mobile');
+    cleanUrl.searchParams.delete('cookies');
+    
+    return NextResponse.redirect(cleanUrl);
+  }
+  
+  // For all other requests, proceed normally
   return NextResponse.next();
 }
 
-// Only run middleware on specified paths
+// Configuration for which routes middleware should run on
 export const config = {
-  matcher: ['/profile/:path*', '/submit-topic/:path*', '/admin/:path*'],
+  matcher: [
+    // Include all routes except for static files and API routes that don't need auth
+    '/((?!_next/static|_next/image|favicon.ico|api/health|api/frame).*)',
+  ],
 };

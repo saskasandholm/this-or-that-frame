@@ -1,321 +1,204 @@
-# Updated Project Enhancement Roadmap
+# Project Plan: This or That Voting Frame
 
-**Status**: 22/22 Key Enhancements Implemented (100% complete for current phase)
-**Last Updated**: Authentication integration completed - $(date +%Y-%m-%d)
+**STATUS: IN PROGRESS**  
+**LAST UPDATE: Error Monitoring System implemented - May 11, 2024**
 
-## Current Implementation Status
+## Overview
 
-### Enhanced Social Features
+This project is a Farcaster Frame voting application called "This or That" that lets users vote on daily pairs of options. The app uses Next.js, the Farcaster Frame SDK, and integrates with Ethereum wallets for user verification and voting.
 
-- [x] Achievement System Expansion
-- [x] Topic Submission System
-- [x] Improved Social Sharing Messages
-- [x] Direct Friend Challenges
-- [x] Friend Leaderboards
+## Goals
 
-### Improved User Experience
+1. Create an engaging daily voting experience for Farcaster users
+2. Demonstrate effective use of Frames for interactive content
+3. Build a robust, error-resistant application with proper monitoring
+4. Track and analyze community preferences through voting data
 
-- [x] Redesigned User Interface
-- [x] Educational "Did You Know" Features
-- [x] One-Click Voting
-- [x] Better Loading Experience
-- [x] Enhanced Error Handling
-- [x] Mobile Optimizations
-- [x] Themed Experience
+## Roadmap
 
-### Technical Improvements
+### Wallet Integration [NEARLY COMPLETE]
 
-- [x] Farcaster SDK Integration
-- [x] Data Persistence Layer
-- [x] Database Optimization
-- [x] React Component Architecture
-- [x] Server-Side Content Rendering
-- [x] Frame Protocol Implementation
-- [x] Admin Dashboard
-- [x] User Activity Tracking
-- [x] Admin Pagination for Data Tables
-- [x] Input Validation & Security
-- [x] Farcaster Authentication (Added: 2025-04-01)
+✅ Implement Wagmi provider with proper client-side initialization  
+✅ Connect Frame SDK with wallet provider  
+✅ Create robust error handling for wallet interactions  
+✅ Build fallback mechanisms for non-frame environments  
+✅ Prevent hydration mismatches with Next.js  
+✅ Add comprehensive error monitoring  
+⬜ Final testing and optimization
 
-### Removed from Current Scope
+### Error Handling [COMPLETE]
 
-- ~~Code Splitting & Lazy Loading~~ (Deprioritized)
-- ~~Localization Support~~ (Deprioritized)
+✅ Develop robust error handling strategy  
+✅ Implement global error handler for unhandled exceptions  
+✅ Create component-level error boundaries  
+✅ Add error reporting for database operations  
+✅ Safe fallbacks for all critical operations  
+✅ Centralized error logging service  
+✅ Error monitoring system with dashboard
 
-## Next Phase: Farcaster Integration Expansion
+### Voting System [IN PROGRESS]
 
-Based on our analysis of Farcaster's broader ecosystem, we've identified new opportunities to enhance our application beyond just Frames.
+✅ Design database schema for voting  
+✅ Create API endpoints for vote submission  
+✅ Implement vote validation and processing  
+⬜ Add vote analytics and reporting  
+⬜ Build admin dashboard for voting management  
+⬜ Implement daily voting pair generation  
+⬜ Create notification system for new voting opportunities
 
-### Authentication Integration (COMPLETED)
+### User Experience [PLANNED]
 
-- [x] Implement Sign in with Farcaster (SIWF) using Auth-kit
-- [x] Create server-side session management for authenticated users
-- [x] Develop user profile persistence across sessions
-- [x] Update database schema to better link user data with Farcaster IDs
-- [x] Add user-specific content and personalized views
-- [x] Style the sign-in button to match application design (Added: 2025-04-02)
+⬜ Design responsive UI for all screen sizes  
+⬜ Implement skeleton loaders for all async operations  
+⬜ Create smooth transitions between states  
+⬜ Add proper feedback for user actions  
+⬜ Ensure accessibility compliance  
+⬜ Optimize performance metrics  
+⬜ Add user preference persistence
 
-### Wallet Integration (IN PROGRESS)
+## Immediate Focus (Next 2 Weeks)
 
-1. Set up Farcaster Frames wallet connector using Frame SDK
+1. **Error Monitoring Deployment**
+   - Set up error tracking and analytics ✅
+   - Create dashboard for most common errors ✅
+   - Implement automated error response system ✅
 
-   - [x] Create connector.ts for wallet integration
-   - [x] Implement WagmiProvider for wallet state management
-   - [x] Build and test wallet detection component
-
-2. Implement wallet user interface
-
-   - [x] Create WalletConnectionButton component
-   - [x] Build WalletStatus component showing connection state
-   - [x] Add wallet address display with copy function
-
-3. Add transaction functionality
-
-   - [x] Implement TransactionSender component
-   - [x] Create TokenBalance component
-   - [x] Build transaction status tracking
-   - [x] Add signing capabilities (messages and typed data)
-
-4. Testing and optimization
-   - [ ] Test on Optimism testnet
-   - [ ] Test in Warpcast Frame Playground
-   - [ ] Optimize UI for mobile and desktop
-   - [ ] Add error handling and recovery paths
-
-### Farcaster Protocol Integration
-
-- [ ] Explore Hubble integration for direct Farcaster data access
-- [ ] Implement cast creation from within the application
-- [ ] Enable social features like following, mentions, and interactions
-- [ ] Add notifications via Farcaster network
-
-### Advanced Frame Features
-
-- [ ] Implement transaction support for NFT minting or token interactions
-- [ ] Add state persistence between frame interactions
-- [ ] Support application-level error handling for better UX
-- [ ] Integrate with external links for deeper web experiences
-
-### Analytics & Insights
-
-- [ ] Develop analytics dashboard for frame engagement
-- [ ] Create insightful user activity visualizations
-- [ ] Build topic performance metrics
-- [ ] Implement A/B testing framework for frame variants
-
-## Implementation Priorities
-
-### Immediate Focus (Next 2 Weeks)
-
-1. **Wallet Integration**
-
-   - Week 1 (April 3-9, 2025):
-     - Implement Farcaster wallet connector using the Frame SDK
-     - Create WalletContext and provider components
-     - Build WalletConnectionButton component with status indicators
-   - Week 2 (April 10-16, 2025):
-     - Add transaction sending functionality with status tracking
-     - Implement token balance display for relevant networks
-     - Test thoroughly in Farcaster test environments
-
-2. **Content Expansion**
-   - Create new topics across categories
-   - Develop more "Did You Know" content
-   - Enhance visual assets for better engagement
-
-### Short-Term (1-2 Months)
-
-1. **Enhanced Analytics**
-
-   - Build analytics dashboard
-   - Implement A/B testing framework
-   - Create performance visualizations
-
-2. **Advanced Frame Features**
-   - Implement frame state management
-   - Add transaction support for NFTs or tokens
-   - Enhance error handling for better UX
-
-### Medium-Term (3-6 Months)
-
-1. **Farcaster Protocol Integration**
-   - Explore Hubble for direct data access
-   - Enable cast creation from the app
-   - Implement social features (follows, mentions)
-
-## Technical Enhancements
-
-### ✅ Auth-kit Integration (COMPLETED)
-
-1. ✅ Install and configure Auth-kit with Optimism RPC
-2. ✅ Implement SignInButton component for login
-3. ✅ Create server-side session management with secure cookies
-4. ✅ Update database schema to better link user data with Farcaster IDs
-5. ✅ Develop user profile functionality
-6. ✅ Add authenticated API routes for user-specific data
-7. ✅ Create personalized views based on authentication state
-8. ✅ Style Auth-kit SignInButton to match application design (Added: 2025-04-02)
-
-### Wallet Integration Plan (IN PROGRESS)
-
-1. Set up Farcaster Frames wallet connector using Frame SDK
-
-   - [x] Create connector.ts for wallet integration
-   - [x] Implement WagmiProvider for wallet state management
-   - [x] Build and test wallet detection component
-
-2. Implement wallet user interface
-
-   - [x] Create WalletConnectionButton component
-   - [x] Build WalletStatus component showing connection state
-   - [x] Add wallet address display with copy function
-
-3. Add transaction functionality
-
-   - [x] Implement TransactionSender component
-   - [x] Create TokenBalance component
-   - [x] Build transaction status tracking
-   - [x] Add signing capabilities (messages and typed data)
-
-4. Testing and optimization
-   - [ ] Test on Optimism testnet
-   - [ ] Test in Warpcast Frame Playground
-   - [ ] Optimize UI for mobile and desktop
-   - [ ] Add error handling and recovery paths
-
-### Frame Advanced Features
-
-1. Implement frame:state management for persistent user sessions
-2. Add transaction capabilities for NFT or token interactions
-3. Enhance error handling with application-level error messages
-4. Create richer frame experiences with external links
-
-### Hubble Integration Exploration
-
-1. Research Hubble setup and implementation requirements
-2. Evaluate hosting and infrastructure needs
-3. Plan architecture for direct Farcaster protocol integration
-4. Design cast creation and interaction flows
-
-## Success Metrics
-
-### Engagement Metrics
-
-- Daily active users
-- Voting participation rate
-- Share rate
-- Return visitor frequency
-- Session duration
-
-### Technical Metrics
-
-- Load time and performance
-- API response times
-- Error rates
-- Authentication success rate
-- Transaction completion rate
+2. **User Experience Improvements**
+   - Improve loading states with skeleton components
+   - Add graceful degradation for all user workflows
+   - Enhance error message clarity and action guidance
 
 ## Changelog
 
-- **2025-04-16**: ✅ Fixed ESM/CommonJS compatibility issue by converting all module imports/exports to CommonJS format
-- **2025-04-16**: 🔨 Documented ESM/CommonJS compatibility issue and solutions
-- **2025-04-15**: ✅ Implemented transaction sending, message signing, and token balance components
-- **2025-04-10**: ✅ Implemented Farcaster Frames wallet connector and basic wallet connection UI
-- **2025-04-02**: ✅ Fixed styling of Farcaster Auth-kit sign-in button to match application design
-- **2025-04-02**: Updated wallet integration plan with more detailed timeline and implementation steps
-- **2025-04-01**: ✅ Completed Farcaster Auth-kit integration, adding authentication, sessions, and personalized content
-- **2025-04-01**: Updated implementation priorities to focus on Wallet integration as the next immediate priority
-- **2025-03-19**: Updated project plan to deprioritize Code Splitting and Localization Support
-- **2025-03-19**: Added new phase for Farcaster ecosystem integration beyond Frames
-- **2025-03-19**: Incorporated Auth-kit integration plan based on Farcaster documentation
-- **2025-03-19**: Added Hubble and broader Farcaster protocol integration possibilities
+### May 11, 2024
+- Implemented Error Monitoring System with dashboard
+- Added error categorization and tracking
+- Created comprehensive error analytics
 
-# Project Plan Update - Error Handling Improvements
+### May 9, 2024
+- Added centralized error logging service
+- Enhanced wallet connection system with robust error handling
+- Implemented safe error fallbacks for wallet interactions
 
-## Recent Implementations
+### May 7, 2024
+- Improved client-side initialization of Wagmi provider
+- Fixed hydration issues in wallet connection components
+- Added global error handler for unhandled rejections
 
-### Error Handling System (Completed)
+### May 5, 2024
+- Initial project setup
+- Implemented Farcaster Frame integration
+- Set up basic database structure
 
-- [x] Created comprehensive error handling strategy documentation
-- [x] Implemented centralized error logging service with severity levels
-- [x] Added enhanced API service with retry logic and timeout handling
-- [x] Improved wallet components with user-friendly error messages
-- [x] Added graceful degradation patterns to critical components
-- [x] Documented usage guidelines for error handling system
+## Recent Updates
 
-### Component Enhancements
+### Database Optimizations (March 20)
 
-- [x] **TransactionSender**: Added error boundary, reset functionality, and user-friendly errors
-- [x] **MessageSigner**: Implemented error categorization and recovery mechanisms
-- [x] **TokenBalance**: Added retry logic, fallback displays, and improved feedback
-- [x] Enhanced wallet integration error handling
+- **Status**: COMPLETE
+- **Date**: March 20, 2024
+- **Key Enhancements**: 
+  - Implemented dual-database strategy: SQLite for development, PostgreSQL for production
+  - Created browser-safe Prisma implementation to prevent client-side errors
+  - Added dedicated data access layer for type-safe database operations
+  - Improved error handling and connection management
+  - Documented database setup and best practices
 
 ## Implementation Details
 
-### 1. Centralized Error Logger
+### Error Monitoring System
 
-We've implemented a centralized error logging service (`src/lib/errorLogger.ts`) that:
+The error monitoring system provides comprehensive tracking, categorization, and analytics for application errors:
 
-- Categorizes errors by severity (CRITICAL, ERROR, WARNING, INFO)
-- Formats error messages consistently
-- Provides context tracking for easier debugging
-- Includes specialized handling for wallet-related errors
-- Prepares for remote logging integration
+1. **Core Components:**
+   - Error monitoring service that tracks all error occurrences
+   - Dashboard UI for error analysis and trend identification
+   - Integration with existing error handlers
+   - Categorization system for error types
 
-### 2. Enhanced API Service
+2. **Implementation:**
+   - Centralized monitoring service with error categorization
+   - Global error handlers for uncaught exceptions
+   - Component-level error boundaries
+   - Error analytics and reporting dashboard
+   - Preparation for external service integration (Sentry)
 
-The improved API service (`src/lib/api.ts`) now features:
+3. **Key Features:**
+   - Real-time error tracking
+   - Error categorization by type, severity, and context
+   - Statistical analysis of error trends
+   - Filtering and visualization tools
+   - Error resolution tracking
 
-- Automatic retry mechanisms with exponential backoff
-- Request timeout handling to prevent stuck requests
-- Standardized error responses with helpful details
-- Integration with the error logging system
+### Wallet Connection System
 
-### 3. Component Improvements
+The wallet connection system has been enhanced with the following improvements:
 
-- **TransactionSender**: Now handles transaction failures gracefully with clear user feedback
-- **MessageSigner**: Improved handling of signature rejections with reset options
-- **TokenBalance**: Added fallback display modes and retry functionality
+1. **Frame SDK Initialization:**
+   - Safe client-side initialization with proper hydration handling
+   - Fallback mechanisms for non-frame environments
+   - Error boundary for wallet connection failures
 
-### 4. Error Boundaries
+2. **Error Handling:**
+   - Comprehensive try/catch blocks for all wallet operations
+   - Detailed error logging and categorization
+   - User-friendly error messages
+   - Recovery mechanisms for failed connections
 
-Strategic placement of error boundaries now prevents component failures from cascading throughout the application.
+3. **State Management:**
+   - Robust tracking of connection states
+   - Proper cleanup of connections and event listeners
+   - Persistence of connection status when appropriate
 
-## Next Steps
+### Database Integration
 
-1. **Testing**: Create comprehensive tests for error handling
+The database integration includes the following safeguards:
 
-   - [ ] Unit tests for error logger functionality
-   - [ ] Integration tests for error boundary behaviors
-   - [ ] Mock network failures to test retry logic
+1. **Connection Pooling:**
+   - Proper connection management
+   - Automatic connection recovery
+   - Connection verification before operations
 
-2. **Monitoring**: Implement error monitoring
-
-   - [ ] Add integration with error tracking service (Sentry)
-   - [ ] Set up alerting for critical errors
-   - [ ] Create dashboard for error frequency monitoring
-
-3. **Documentation**:
-   - [ ] Add examples for common error handling patterns in the developer wiki
-   - [ ] Create troubleshooting guide for common errors
-
-## Current Status
-
-The core error handling infrastructure is now in place with all wallet-related components updated to use the new system. This improvement dramatically enhances application reliability, especially during network issues or when interacting with blockchain operations.
-
-User experience during errors has been significantly improved through:
-
-- Clear, actionable error messages
+2. **Transaction Handling:**
+   - Atomic transactions with proper rollback
+   - Error recovery for failed transactions
 - Retry mechanisms for transient failures
-- Graceful UI degradation when services are unavailable
 
-## Challenges and Solutions
+3. **Error Reporting:**
+   - Detailed error logging for database operations
+   - Performance metrics tracking
+   - Query optimization recommendations
 
-**Challenge**: Balancing comprehensive error capture with performance
-**Solution**: Implemented severity-based filtering and optimized logging
+#### Database Architecture
 
-**Challenge**: Creating user-friendly errors from technical blockchain errors
-**Solution**: Added specialized wallet error categorization with actionable messages
+We've completely revamped the database setup to address connection issues and improve development workflow:
 
-**Challenge**: Preventing error handling code from cluttering components
-**Solution**: Centralized common error handling logic in dedicated services
+1. **Development Environment**:
+   - SQLite database for fast, zero-configuration local development
+   - No network latency or connection issues
+   - Automatic schema switching based on environment
+
+2. **Production Environment**:
+   - PostgreSQL with Supabase for production deployment
+   - Connection pooling for high performance
+   - Direct connection URL for migrations
+
+3. **Browser-Safe Implementation**:
+   - Implemented checks to prevent Prisma initialization in browser contexts
+   - Created data access layer for type-safe database operations
+   - Added error handling and fallbacks for database operations
+
+#### Documentation Updates
+
+- Added comprehensive `DATABASE_SETUP.md` documentation
+- Updated troubleshooting guide with Prisma browser error solutions
+- Added database best practices to developer guidelines
+
+### Next Steps
+
+1. Complete the remaining wallet integration tasks
+2. Focus on user experience improvements
+3. Implement the voting system core functionality
+4. Set up continuous error monitoring and resolution processes
+5. Monitor database performance in production
+6. Consider adding query caching for frequently accessed data
+7. Explore connection pooling optimizations for high-traffic scenarios

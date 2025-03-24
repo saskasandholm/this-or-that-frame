@@ -32,30 +32,33 @@ export function useAuthState() {
     const cookiesStr = document.cookie;
     const cookies = cookiesStr.split(';').map(c => c.trim());
 
-    // Look for any of our auth cookies
-    const hasAuth = cookies.some(
-      c =>
-        c.startsWith('farcaster_auth=') ||
-        c.startsWith('farcaster_auth_lax=') ||
-        c.startsWith('farcaster_auth_none=')
+    // Look for our primary auth cookie first
+    const hasMainAuthCookie = cookies.some(c => c.startsWith('farcaster_auth='));
+    
+    // Look for our primary check cookie 
+    const hasMainCheckCookie = cookies.some(c => c.startsWith('farcaster_auth_check='));
+
+    // Only if main cookies aren't present, check fallbacks
+    const hasAnyAuthCookie = hasMainAuthCookie || cookies.some(
+      c => c.startsWith('farcaster_auth_lax=') || c.startsWith('farcaster_auth_none=')
     );
 
-    // Look for any of our check cookies
-    const hasCheck = cookies.some(
-      c =>
-        c.startsWith('farcaster_auth_check=') ||
-        c.startsWith('farcaster_auth_check_lax=') ||
-        c.startsWith('farcaster_auth_check_none=')
+    const hasAnyCheckCookie = hasMainCheckCookie || cookies.some(
+      c => c.startsWith('farcaster_auth_check_lax=') || c.startsWith('farcaster_auth_check_none=')
     );
 
-    console.log('[useAuthState] Cookie check:', {
-      hasAuth,
-      hasCheck,
+    console.log('[useAuthState] Cookie check details:', {
+      hasMainAuthCookie,
+      hasMainCheckCookie,
+      hasAnyAuthCookie,
+      hasAnyCheckCookie,
       cookieCount: cookies.length,
-      cookies: cookies.map(c => c.split('=')[0]),
+      rawCookies: cookiesStr.substring(0, 100) + (cookiesStr.length > 100 ? '...' : ''),
+      cookieNames: cookies.map(c => c.split('=')[0]),
     });
 
-    return hasAuth && hasCheck;
+    // Consider authenticated if we have either the main cookies or any of the fallbacks
+    return (hasMainAuthCookie && hasMainCheckCookie) || (hasAnyAuthCookie && hasAnyCheckCookie);
   }, []);
 
   /**

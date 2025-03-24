@@ -26,6 +26,10 @@ const nextConfig = {
         pathname: '/7.x/**',
       },
       {
+        protocol: 'https',
+        hostname: 'imagedelivery.net',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
       },

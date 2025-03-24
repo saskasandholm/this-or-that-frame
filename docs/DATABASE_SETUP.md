@@ -1,157 +1,221 @@
-# Database Setup for Frame Project
+# Database Setup and Configuration
 
-This document outlines the database setup for the Farcaster Frame project, including both local development and production environments.
+This document outlines the database setup for the "This or That" Farcaster Frame application, focusing on how the Prisma ORM is configured to work optimally in both development and production environments.
 
 ## Overview
 
-The project uses:
-- **PostgreSQL** as the database (hosted on Supabase) for production
-- **SQLite** for local development (optional)
+The application uses:
+- **SQLite** for local development (fast, embedded database)
+- **PostgreSQL** with Supabase for production deployment
 - **Prisma ORM** for database access and migrations
 
-## Production Environment (Vercel + Supabase)
+This dual-database approach provides fast local development while maintaining production-grade reliability.
 
-### Environment Variables in Vercel
+## Environment-Specific Database Configuration
 
-The following environment variables are configured in Vercel:
+The application is configured to automatically use the appropriate database based on the environment:
 
+### Development Environment
+
+In development, the application uses SQLite for:
+- Zero configuration setup
+- No network latency or connection issues
+- Fast query execution
+- Simple local development experience
+
+### Production Environment
+
+In production, the application uses PostgreSQL with:
+- Connection pooling for high performance
+- Full transaction support
+- Advanced query capabilities
+- Supabase for managed database hosting
+
+## Database Setup
+
+### 1. Environment Variables
+
+The following environment variables are used:
+
+```env
+# For PostgreSQL in production (with connection pooling)
+DATABASE_URL="postgresql://user:password@host:6543/dbname?pgbouncer=true&sslmode=require"
+
+# Direct connection for migrations
+DIRECT_URL="postgresql://user:password@host:5432/dbname?sslmode=require"
 ```
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.akmdkvtmuawtyibimyhm.supabase.co:6543/postgres?pgbouncer=true&sslmode=require"
-DIRECT_URL="postgresql://postgres:[PASSWORD]@db.akmdkvtmuawtyibimyhm.supabase.co:5432/postgres?sslmode=require"
-NEXTAUTH_SECRET="[SECURE_RANDOM_STRING]"
+
+### 2. Schema Configuration
+
+We use different schema files for development and production:
+
+- `prisma/schema.development.prisma` - SQLite configuration for development
+- `prisma/schema.production.prisma` - PostgreSQL configuration for production
+- `prisma/schema.prisma` - Active schema file (copied from the appropriate source)
+
+These files are automatically managed by our environment setup scripts.
+
+### 3. Initialization Scripts
+
+The application includes scripts to configure the environment:
+
+- `scripts/setup-env.js` - Sets up the appropriate database schema based on environment
+- `scripts/verify-env.js` - Validates that all required environment variables are present
+
+## Prisma Client Configuration
+
+The Prisma client is configured with several optimizations:
+
+### 1. Singleton Pattern
+
+The client uses a singleton pattern to prevent connection exhaustion:
+
+```typescript
+// src/lib/prisma.ts
+const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined };
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient(prismaOptions);
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 ```
 
-### Supabase Configuration
+### 2. Browser-Safe Implementation
 
-1. **Database:** PostgreSQL hosted on Supabase
-2. **Connection Pooling:** Enabled via Supavisor (on port 6543)
-3. **SSL:** Required for secure connections
-4. **Network Restrictions:** None (accessible from all IPs)
+The client is configured to be safe for use in Next.js environments by:
+- Detecting browser vs server environments
+- Preventing initialization in browser contexts
+- Providing appropriate fallbacks
 
-### Preparing the Production Database
+```typescript
+// Detect if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
 
-We've created a utility script to help prepare the production database before deployment:
+// Initialize PrismaClient safely (only on server)
+export const prisma = isBrowser
+  ? (null as unknown as PrismaClient) // Return null for browser environment
+  : globalForPrisma.prisma ?? new PrismaClient(prismaOptions);
+```
+
+### 3. Connection Pooling
+
+Production environments use connection pooling for optimal performance:
+
+```typescript
+const prismaOptions: Prisma.PrismaClientOptions = {
+  log: [...],
+  // Add connection pooling configuration for production
+  ...(process.env.NODE_ENV === 'production' && {
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL, // Uses PgBouncer for connection pooling
+      },
+    },
+  }),
+};
+```
+
+### 4. Safe Database Operations
+
+A helper function is provided for safe database operations:
+
+```typescript
+export async function safeDbOperation<T>(
+  operation: () => Promise<T>,
+  fallbackValue?: T,
+  context: string = 'database-operation'
+): Promise<T> {
+  // Safe execution logic with error handling
+}
+```
+
+## Database Access Pattern
+
+To ensure proper database access, we follow these patterns:
+
+### 1. Server-Only Database Access
+
+Database operations should only be performed in:
+- Server components (pages in `app` directory)
+- API routes
+- Server actions
+
+### 2. Data Access Layer
+
+A dedicated data access layer is implemented in `src/lib/db.ts` that provides:
+- Type-safe database functions
+- Error handling and fallbacks
+- Consistent query patterns
+
+Example:
+```typescript
+// src/lib/db.ts
+export async function getCurrentTopic(): Promise<Topic | null> {
+  return safeDbOperation(
+    async () => {
+      const currentTopic = await prisma.topic.findFirst({
+        where: { isActive: true },
+        include: { category: true },
+        orderBy: { createdAt: 'desc' }
+      });
+      
+      return currentTopic;
+    },
+    null,
+    'getCurrentTopic'
+  );
+}
+```
+
+## Database Migrations
+
+Database migrations are managed through Prisma:
 
 ```bash
-npm run prepare-production-db
+# Create a new migration (development)
+npx prisma migrate dev --name <migration_name>
+
+# Apply migrations (production)
+npx prisma migrate deploy
 ```
 
-This script:
-1. Temporarily switches your schema.prisma file to use PostgreSQL
-2. Creates a temporary .env.production file with the correct connection strings
-3. Runs `prisma migrate deploy` to apply migrations to the production database
-4. Restores your development configuration
+## Seeding
 
-## Local Development Options
+The database can be seeded with initial data:
 
-### Option 1: Connect to Supabase directly (When possible)
-
-You can connect to the remote Supabase database for development by adding these to your `.env` file:
-
-```
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.akmdkvtmuawtyibimyhm.supabase.co:6543/postgres?pgbouncer=true&sslmode=require"
-DIRECT_URL="postgresql://postgres:[PASSWORD]@db.akmdkvtmuawtyibimyhm.supabase.co:5432/postgres?sslmode=require"
+```bash
+# Run the seed script
+npm run seed
 ```
 
-If you encounter SSL certificate issues, you may need to set up the PostgreSQL root certificate:
+## Troubleshooting
 
-1. Download the root certificate from [https://cockroachlabs.cloud/clusters](https://cockroachlabs.cloud/clusters) or use the built-in `~/.postgresql/root.crt`
-2. Add the following to your connection strings: `&sslcert=/path/to/your/root.crt`
+Common database-related issues and solutions:
 
-### Option 2: Use SQLite for local development (Recommended)
+### Connection Issues
 
-For easier local development without worrying about remote connections:
+If experiencing connection issues in development:
+1. Verify SQLite file exists in `prisma/dev.db`
+2. Run `npx prisma generate` to ensure client is up to date
+3. Run `node scripts/setup-env.js` to reset the development environment
 
-1. In your `.env` file, use:
-```
-DATABASE_URL="file:./dev.db"
-```
+### PrismaClient Error in Browser
 
-2. In `prisma/schema.prisma`, update for local development:
-```prisma
-// For production (Vercel + Supabase)
-// datasource db {
-//   provider  = "postgresql"
-//   url       = env("DATABASE_URL")
-//   directUrl = env("DIRECT_URL")
-// }
+If you see "PrismaClient cannot be used in the browser" errors:
+1. Ensure you're not importing `prisma` directly in client components
+2. Only use the database access layer (`src/lib/db.ts`) in server components
+3. Use the `"use server"` directive when needed in React Server Components
 
-// For local development
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-```
+### Schema Sync Issues
 
-**Important:** Before committing or deploying, make sure to run the preparation script mentioned above.
+If schema and database are out of sync:
+1. Run `npx prisma db push` to push schema changes
+2. Run `npx prisma generate` to update the client
 
-## Workflow: Local to Production
+## Best Practices
 
-1. Develop locally using SQLite
-2. Make schema changes in `prisma/schema.prisma`
-3. Test with local database: `npx prisma db push`
-4. When ready to deploy:
-   - Run `npm run prepare-production-db` to migrate the production database
-   - Commit and push to GitHub to trigger Vercel deployment
-
-## Database Schema
-
-The schema is defined in `prisma/schema.prisma` and includes models for:
-- Users
-- Categories
-- Topics
-- Votes
-- User Streaks
-- Achievements
-- Topic Submissions
-- Admin roles
-- User activity tracking
-
-## Making Schema Changes
-
-1. Update the `prisma/schema.prisma` file with your changes
-2. Run migrations:
-   ```bash
-   # For development (with SQLite)
-   npx prisma db push
-   
-   # For production (on Vercel)
-   npm run prepare-production-db
-   ```
-
-## Accessing the Database
-
-### Using Prisma Client
-
-```typescript
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
-
-// Example query
-async function getTopics() {
-  const topics = await prisma.topic.findMany()
-  return topics
-}
-```
-
-### Using Supabase Client (for additional features)
-
-```typescript
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
-
-// Example for auth or storage features
-const { data, error } = await supabase
-  .from('topics')
-  .select('*')
-```
-
-## Backup and Restore
-
-Backups can be managed through the Supabase dashboard:
-1. Go to **Project Settings > Database**
-2. Use the **Backup** section to create and download backups 
+1. **Never import `prisma` directly in client components**
+2. Use the dedicated `db.ts` functions for database access
+3. Add proper error handling for database operations
+4. Test database functions with appropriate fallbacks 

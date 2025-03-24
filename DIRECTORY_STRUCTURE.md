@@ -10,17 +10,32 @@ The project is a Next.js application that implements a Farcaster Frame for "This
 
 - `.env` - Environment variables for the project, includes database connection
 - `.env.example` - Example environment file with documentation
+- `.env.production` - Production environment variables
 - `.git/` - Git repository information
 - `.gitignore` - Specifies intentionally untracked files
 - `.github/` - GitHub configuration files
   - `workflows/` - GitHub Actions workflow configurations
     - `ci.yml` - Continuous Integration workflow
 - `.next/` - Next.js build directory (generated during development/build)
+- `.husky/` - Git hooks configuration for project maintainability
+- `.swc/` - SWC compiler configuration for faster builds
+- `.vercel/` - Vercel deployment configuration
+- `.vercelignore` - Specifies files to ignore during Vercel deployments
 - `CHANGELOG.md` - Records of all notable changes to the project
 - `DIRECTORY_STRUCTURE.md` - This file, documenting the project structure
 - `README.md` - Project overview, features, and setup instructions
+- `VERCEL_DEPLOYMENT.md` - Instructions for deploying to Vercel
 - `__tests__/` - Test files for unit and integration tests
+- `check-env.js` - Environment validation script
+- `components.json` - Component configuration for the project
 - `docs/` - Project documentation
+  - `archive/` - Archived documentation
+  - `components/` - Documentation for UI components
+  - `lib/` - Documentation for utility libraries
+  - `public/` - Public-facing documentation
+  - `services/` - Documentation for service integrations
+  - Various markdown files for specific topics (SETUP.md, TROUBLESHOOTING.md, etc.)
+- `eslint.config.js` - ESLint configuration
 - `jest.config.js` - Configuration for Jest testing framework
 - `jest.setup.js` - Setup file for Jest tests
 - `next-env.d.ts` - TypeScript declarations for Next.js
@@ -34,15 +49,18 @@ The project is a Next.js application that implements a Farcaster Frame for "This
 - `prisma/` - Database schema and migrations using Prisma ORM
 - `public/` - Static assets served by Next.js
   - `audio/` - Sound effects and audio assets
-  - `docs/` - Public documentation (note: this may contain outdated copies of documentation)
   - `images/` - Image assets including app-icon.png and app-splash.png
   - `js/` - Static JavaScript files
   - Various SVG files (next.svg, vercel.svg, etc.)
 - `scripts/` - Utility scripts for the project
   - `verify-env.js` - Environment variable validation script
+- `sentry.client.config.js` - Sentry error tracking for client
+- `sentry.edge.config.js` - Sentry error tracking for edge functions
+- `sentry.server.config.js` - Sentry error tracking for server
 - `src/` - Source code for the application
 - `tailwind.config.js` - Tailwind CSS configuration
 - `tsconfig.json` - TypeScript configuration
+- `tsconfig.tsbuildinfo` - TypeScript build information
 
 ## Source Code (`src/`)
 

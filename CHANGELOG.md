@@ -9,27 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Authentication Improvements
 
-- **Implemented Farcaster Auth-kit Integration**:
-
-  - Added Sign in with Farcaster (SIWF) functionality
-  - Created AuthProvider component for Auth-kit context
-  - Implemented SignInButton component for the login UI
-  - Added server-side signature verification
-  - Implemented secure cookie-based sessions
-  - Created User model in the database schema to store Farcaster user data
-
-- **Protected Routes and Privacy**:
-
-  - Implemented Next.js middleware for route protection
-  - Created redirect mechanism for unauthenticated users
-  - Added login prompt when accessing protected routes
-  - Ensured proper security for authentication cookies
+- **Implemented Farcaster Auth-Kit Integration (May 2025)**:
+  - Added Sign in with Farcaster using official Auth-Kit library
+  - Created streamlined authentication flow following best practices
+  - Implemented profile picture display with fallback avatars
+  - Fixed sign-out functionality for reliable authentication state management
+  - Added comprehensive authentication documentation for developers
+  - Enhanced next.config.js to support Farcaster profile images
+  - Created test page for debugging authentication state
+  - Fixed ethereum property conflicts that were causing TypeErrors
+  - Removed legacy cookie-based authentication in favor of Auth-Kit's session management
 
 - **Authentication User Experience**:
-  - Designed a clean authentication flow
-  - Added loading states and error handling for authentication
-  - Created context providers for authentication state management
-  - Enhanced profile state to show user information after login
+  - Updated navigation bar to display user profile when authenticated
+  - Added dropdown menu for authenticated users with profile and sign-out options
+  - Implemented fallback avatars showing user initials when profile images fail to load
+  - Enhanced console logging for authentication state debugging
+  - Added error handling for authentication failures
 
 ### Security Improvements
 

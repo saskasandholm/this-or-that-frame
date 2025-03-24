@@ -1,43 +1,61 @@
-# This or That - Documentation
+# Documentation Index
 
-This directory contains documentation for the "This or That" Farcaster Frame application.
+This directory contains comprehensive documentation for the "This or That" Farcaster Frame application.
 
-## Core Documentation
+## Quick Start Guides
 
-- **[Project Overview](./PROJECT_OVERVIEW.md)** - High-level overview of the project
-- **[Setup Guide](./SETUP.md)** - How to set up the development environment
-- **[Deployment Guide](./DEPLOYMENT.md)** - How to deploy the application
-- **[Troubleshooting](./TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Changelog](./CHANGELOG.md)** - Record of changes to the project
+- **[Setup Guide](/docs/SETUP.md)** - How to set up the application for local development
+- **[Troubleshooting Guide](/docs/TROUBLESHOOTING.md)** - Solutions to common problems
+- **[Deployment Guide](/docs/DEPLOYMENT.md)** - How to deploy the application to production
+- **[Frame Testing Guide](/docs/FRAME_TESTING.md)** - How to test frames in Warpcast
 
-## Architecture
+## Latest Updates
 
-- **[System Architecture](./architecture.md)** - Overview of system architecture
-- **[Database Schema](./DATABASE_SCHEMA.md)** - Database structure and models
-- **[API Routes](./api-routes.md)** - API endpoints and usage
+- **[Database Setup](/docs/DATABASE_SETUP.md)** - Updated configuration for Next.js 15.2 with Prisma
+- **[Database Refresh](/docs/refresh.md)** - Recent optimizations and browser error resolutions
+- **[Error Handling Implementation](/docs/ERROR_HANDLING_IMPLEMENTATION.md)** - Enhanced error handling across the application
+- **[Security Updates](/docs/SECURITY_UPDATES.md)** - Latest security considerations
 
-## Farcaster Integration
+## Architecture & Design
 
-- **[Frame Implementation](./FRAME_IMPLEMENTATION.md)** - How frames are implemented
-- **[Authentication](./FARCASTER_AUTH.md)** - Farcaster authentication integration
-- **[Wallet Integration](./wallet-integration.md)** - Wallet connection for transactions
-- **[Frame Meta Tags](./frame-meta-tags.md)** - Frame meta tag implementation
+- **[Project Overview](/docs/PROJECT_OVERVIEW.md)** - High-level overview of the project
+- **[System Architecture](/docs/architecture.md)** - Technical architecture of the application
+- **[Database Schema](/docs/DATABASE_SCHEMA.md)** - Database structure and models
+- **[API Routes](/docs/api-routes.md)** - API endpoint documentation
 
-## Components and Libraries
+## Feature Documentation
 
-- **[Components](./components/)** - Component documentation
-- **[Services](./services/)** - Service documentation
-- **[Libraries](./lib/)** - Utility libraries
+- **[Frame Implementation](/docs/FRAME_IMPLEMENTATION.md)** - How Farcaster Frames are implemented
+- **[Farcaster Authentication](/docs/FARCASTER_AUTH.md)** - Authentication with Farcaster
+- **[Wallet Integration](/docs/wallet-integration.md)** - Connecting to user wallets
+- **[Admin Dashboard](/docs/admin.md)** - Admin functionality and usage
 
-## Project Management
+## Development Resources
 
-- **[Current Project Plan](./UPDATED_PROJECT_PLAN.md)** - Current status and roadmap
-- **[Implementation Tracker](./IMPLEMENTATION_TRACKER.md)** - Track implementation progress
-- **[Future Improvements](./future-improvements.md)** - Ideas for future enhancements
+- **[Error Handling Strategy](/docs/ERROR_HANDLING_STRATEGY.md)** - Overall error handling approach
+- **[Testing Strategy](/docs/testing-strategy.md)** - Approach to testing the application
+- **[Future Improvements](/docs/future-improvements.md)** - Planned enhancements
+- **[Implementation Tracker](/docs/IMPLEMENTATION_TRACKER.md)** - Status of feature implementation
 
-## Example Content
+## Technical References
 
-- **[Example Topics](./example-topics.md)** - Sample topics for the application
+- **[Frame Meta Tags](/docs/frame-meta-tags.md)** - Meta tags for Farcaster Frames
+- **[Example Topics](/docs/example-topics.md)** - Sample content for the application
+- **[Sentry Integration](/docs/SENTRY_INTEGRATION.md)** - Error monitoring with Sentry
+
+## Component Documentation
+
+- **[UI Components](/docs/components/README.md)** - Documentation for reusable components
+
+## Optimization & Performance
+
+- **[Database Optimization Plan](/docs/DATABASE_OPTIMIZATION_PLAN.md)** - Performance improvements for database operations
+- **[Error Monitoring Implementation](/docs/ERROR_MONITORING_IMPLEMENTATION.md)** - Monitoring with Sentry
+
+## Contributing & Standards
+
+- **[Documentation Plan](/docs/DOCUMENTATION_PLAN.md)** - Standards and approach to documentation
+- **[Updated Project Plan](/docs/UPDATED_PROJECT_PLAN.md)** - Latest project roadmap
 
 ## Archived Documentation
 

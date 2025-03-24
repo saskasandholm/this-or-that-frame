@@ -20,8 +20,6 @@ export interface ExtendedErrorData extends ErrorData {
   context?: string;
   severity?: ErrorSeverity;
   timestamp?: string;
-  userId?: string;
-  sessionId?: string;
 }
 
 /**
@@ -50,44 +48,36 @@ export class ErrorLogger {
   /**
    * Log an error with context and optional severity
    */
-  public log(
-    error: unknown,
-    context?: string,
-    severity: ErrorSeverity = ErrorSeverity.ERROR,
-    provideFeedback = true
-  ): ExtendedErrorData {
-    // Process error into standard format
-    const processedError = AsyncErrorHandler.processError(error);
+  public log(error: unknown, context?: string, severity: ErrorSeverity = ErrorSeverity.ERROR): ExtendedErrorData {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const prefix = `[${severity}]${context ? ` [${context}]` : ''}`;
 
-    // Extend with additional data
+    // Create extended error data
     const extendedError: ExtendedErrorData = {
-      ...processedError,
+      name: error instanceof Error ? error.name : 'Error',
+      message: errorMessage,
       context,
       severity,
       timestamp: new Date().toISOString(),
+      originalError: error
     };
 
-    // Log to console with appropriate formatting
-    this.logToConsole(extendedError);
-
-    // Send to remote logging service if enabled and error is severe enough
-    if (
-      this.enableRemoteLogging &&
-      (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.ERROR)
-    ) {
-      this.sendToRemoteLogger(extendedError);
-    }
-
-    // Provide haptic feedback for serious errors if requested
-    if (
-      provideFeedback &&
-      (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.ERROR)
-    ) {
-      try {
-        HapticService.heavy();
-      } catch (_e) {
-        // Ignore haptic errors
-      }
+    // Log to console
+    switch (severity) {
+      case ErrorSeverity.CRITICAL:
+        console.error(`${prefix} ${errorMessage}`, error);
+        break;
+      case ErrorSeverity.ERROR:
+        console.error(`${prefix} ${errorMessage}`, error);
+        break;
+      case ErrorSeverity.WARNING:
+        console.warn(`${prefix} ${errorMessage}`, error);
+        break;
+      case ErrorSeverity.INFO:
+        console.info(`${prefix} ${errorMessage}`, error);
+        break;
+      default:
+        console.log(`${prefix} ${errorMessage}`, error);
     }
 
     return extendedError;
@@ -112,30 +102,6 @@ export class ErrorLogger {
    */
   public info(error: unknown, context?: string): ExtendedErrorData {
     return this.log(error, context, ErrorSeverity.INFO);
-  }
-
-  /**
-   * Format and log error to console
-   */
-  private logToConsole(error: ExtendedErrorData): void {
-    const prefix = `[${error.severity}]${error.context ? ` [${error.context}]` : ''}`;
-
-    switch (error.severity) {
-      case ErrorSeverity.CRITICAL:
-        console.error(`${prefix} ${error.message}`, error);
-        break;
-      case ErrorSeverity.ERROR:
-        console.error(`${prefix} ${error.message}`, error);
-        break;
-      case ErrorSeverity.WARNING:
-        console.warn(`${prefix} ${error.message}`, error);
-        break;
-      case ErrorSeverity.INFO:
-        console.info(`${prefix} ${error.message}`, error);
-        break;
-      default:
-        console.log(`${prefix} ${error.message}`, error);
-    }
   }
 
   /**

@@ -1,61 +1,52 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { FarcasterUser } from './useAuthState';
+import { useState, useEffect } from 'react';
+import { useProfile } from '@farcaster/auth-kit';
 import { trackEvent } from '@/lib/analytics';
 
+export type FarcasterUser = {
+  fid: number;
+  username: string;
+  displayName: string;
+  pfpUrl: string;
+};
+
 export function useAuthContext() {
-  const authContext = useAuth();
-  const [localUser, setLocalUser] = useState<FarcasterUser | null>(null);
-  const [isLocalLoading, setIsLocalLoading] = useState(true);
+  const { isAuthenticated, profile } = useProfile();
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Update loading state based on profile initialization
   useEffect(() => {
-    // If auth context already has a user, use that
-    if (authContext.user) {
-      setLocalUser(authContext.user);
-      setIsLocalLoading(false);
-      return;
+    if (profile !== undefined) {
+      setIsLoading(false);
     }
+  }, [profile]);
 
-    // Otherwise, check for cookie-based authentication
-    const checkCookieAuth = async () => {
-      try {
-        // Try to get auth data from our server
-        const response = await fetch('/api/me', {
-          credentials: 'include', // Important to include cookies
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          if (userData.user) {
-            setLocalUser(userData.user);
-            trackEvent('auth_from_cookie', {
-              source: 'cookie',
-              fid: userData.user.fid,
-            });
-          } else {
-            setLocalUser(null);
-          }
-        } else {
-          setLocalUser(null);
-        }
-      } catch (error) {
-        console.error('Error checking cookie auth:', error);
-        setLocalUser(null);
-      } finally {
-        setIsLocalLoading(false);
-      }
-    };
-
-    if (!authContext.isLoading) {
-      checkCookieAuth();
+  // Track authentication events
+  useEffect(() => {
+    if (isAuthenticated && profile) {
+      console.log('[AuthContext] User authenticated with Farcaster AuthKit:', {
+        fid: profile.fid,
+        username: profile.username
+      });
+      trackEvent('auth_success', {
+        method: 'farcaster',
+        source: 'farcaster_auth_kit'
+      });
     }
-  }, [authContext.user, authContext.isLoading]);
+  }, [isAuthenticated, profile]);
+
+  // Construct user object from profile
+  const user = isAuthenticated && profile ? {
+    fid: profile.fid || 0,
+    username: profile.username || '',
+    displayName: profile.displayName || profile.username || '',
+    pfpUrl: profile.pfpUrl || ''
+  } : null;
 
   return {
-    user: localUser || authContext.user,
-    isAuthenticated: !!localUser || authContext.isAuthenticated,
-    isLoading: isLocalLoading || authContext.isLoading,
+    user,
+    isAuthenticated,
+    isLoading
   };
 }

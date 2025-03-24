@@ -1,5 +1,5 @@
 import { Metadata, ResolvingMetadata } from 'next';
-import { prisma } from '@/lib/prisma';
+import { getCurrentTopic } from '@/lib/db';
 import ClientPage from '@/components/ClientPage';
 
 export async function generateMetadata(_params: any, parent: ResolvingMetadata): Promise<Metadata> {
@@ -34,17 +34,10 @@ export default async function HomePage({ searchParams }: Props) {
   const params = await searchParams;
   const loginRequired = params.login === 'required';
 
-  // Get the active topic
+  // Get the active topic using the db utility
   let activeTopic;
   try {
-    activeTopic = await prisma.topic.findFirst({
-      where: {
-        isActive: true,
-      },
-      include: {
-        category: true,
-      },
-    });
+    activeTopic = await getCurrentTopic();
   } catch (error) {
     console.error('Error fetching active topic:', error);
     // Continue with fallback data

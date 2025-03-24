@@ -5,16 +5,24 @@ import { isAdmin } from '@/lib/utils';
 /**
  * Get a single topic submission by ID
  */
-export async function GET(request: NextRequest, context: any) {
-  const id = context.params.id;
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   return NextResponse.json({ id });
 }
 
 /**
  * Update a topic submission (approve or reject)
  */
-export async function PATCH(request: NextRequest, context: any) {
+export async function PATCH(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const resolvedParams = await params;
     const body = await request.json();
     const { status, reason, adminFid } = body;
 
@@ -45,7 +53,7 @@ export async function PATCH(request: NextRequest, context: any) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const submissionId = parseInt(context.params.id);
+    const submissionId = parseInt(resolvedParams.id);
 
     // Get the submission
     const submission = await prisma.topicSubmission.findUnique({
@@ -102,7 +110,11 @@ export async function PATCH(request: NextRequest, context: any) {
 /**
  * Delete a topic submission
  */
-export async function DELETE(request: NextRequest, context: any) {
-  const id = context.params.id;
+export async function DELETE(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   return NextResponse.json({ message: 'Submission deleted', id });
 }

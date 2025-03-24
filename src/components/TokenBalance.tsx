@@ -74,7 +74,7 @@ export default function TokenBalance({
   useEffect(() => {
     if (isError && error) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      errorLogger.log(error, 'TokenBalance', undefined, false);
+      errorLogger.log(error, 'TokenBalance');
 
       // Create user-friendly error message
       let friendlyMessage = 'Failed to load balance';

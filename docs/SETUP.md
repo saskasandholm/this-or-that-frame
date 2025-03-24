@@ -1,327 +1,235 @@
-# Setup Guide
+# Setup Guide for This or That Frame Application
 
-This document provides detailed instructions for setting up the "This or That" Farcaster Frame project.
+This guide will walk you through setting up the "This or That" Farcaster Frame application for local development.
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
-
-- Node.js (v18 or later, v20+ recommended)
-- npm or yarn
-- Git
-
-## Installation Steps
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/this-or-that-frame.git
-   cd this-or-that-frame
-   ```
-
-2. **Install dependencies**
-
-   Use the `--legacy-peer-deps` flag to handle React 19 compatibility issues:
-
-   ```bash
-   npm install --legacy-peer-deps
-   # or
-   yarn install --legacy-peer-deps
-   ```
-
-3. **Set up environment variables**
-
-   Copy the example environment file and update it with your settings:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Edit the `.env` file to include:
-
-   - `NEXT_PUBLIC_APP_URL`: Your application URL (e.g., http://localhost:3000 for development)
-   - `DATABASE_URL`: Your database connection string (defaults to SQLite)
-   - `NEXT_PUBLIC_FRAME_IMAGE_URL`: URL for frame images (defaults to http://localhost:3000/api/og)
-   - `NEXT_PUBLIC_FRAME_POST_URL`: URL for frame POST endpoint (defaults to http://localhost:3000/api/frame)
-   - Other optional variables as needed
-
-4. **Verify environment variables**
-
-   The project includes an environment validation script that checks for required variables:
-
-   ```bash
-   npm run verify-env
-   ```
-
-   This script will alert you if any required variables are missing. It is automatically run before the development and build processes.
-
-5. **Initialize the database**
-
-   ```bash
-   # Generate Prisma client
-   npx prisma generate
-
-   # Create database and run migrations
-   npx prisma migrate dev --name init
-
-   # Seed the database with initial data
-   npm run seed
-   ```
-
-6. **Start the development server**
-
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-   Your application should now be running at [http://localhost:3000](http://localhost:3000) (or another port if 3000 is in use).
-
-## Next.js 15.2 Compatibility
-
-This project uses Next.js 15.2, which includes several important features and changes:
-
-1. **API Route Handler Types**
-
-   Next.js 15.2 has stricter type requirements for API route handlers. Use the following pattern:
-
-   ```typescript
-   // src/app/api/route.ts
-   import { NextRequest, NextResponse } from 'next/server';
-
-   export async function GET(request: NextRequest) {
-     // Handler code...
-     return NextResponse.json({ data: 'example' });
-   }
-
-   // For dynamic routes (src/app/api/[id]/route.ts)
-   export async function GET(request: NextRequest, context: { params: { id: string } }) {
-     const id = context.params.id;
-     // Handler code...
-     return NextResponse.json({ id });
-   }
-   ```
-
-2. **Streaming Metadata**
-
-   Next.js 15.2 supports streaming metadata, which improves initial page load performance:
-
-   ```typescript
-   // app/page.tsx
-   export const generateMetadata = async () => {
-     // This no longer blocks initial UI render
-     return {
-       title: 'My App',
-       description: 'Description',
-     };
-   };
-   ```
-
-3. **Redesigned Error UI**
-
-   Take advantage of the improved error overlay by ensuring your code has proper error boundaries and error handlers.
-
-4. **If Experiencing Type Errors**
-
-   If you encounter persistent type errors in API routes, you can use the `any` type as a temporary solution:
-
-   ```typescript
-   export async function GET(request: NextRequest, context: any) {
-     const id = context.params.id;
-     // Handler code...
-     return NextResponse.json({ id });
-   }
-   ```
-
-For more details on Next.js 15.2 compatibility, see the [Troubleshooting Guide](./TROUBLESHOOTING.md#next-js-152-compatibility-issues).
-
-## Tailwind CSS v4 Configuration
-
-This project uses Tailwind CSS v4, which has some specific requirements:
-
-1. **PostCSS Configuration**
-
-   Ensure your `postcss.config.js` file uses the `@tailwindcss/postcss` plugin:
-
-   ```js
-   export default {
-     plugins: {
-       '@tailwindcss/postcss': {},
-       autoprefixer: {},
-     },
-   };
-   ```
-
-2. **Tailwind CSS Import**
-
-   In your `globals.css` file, use the new import syntax:
-
-   ```css
-   @import 'tailwindcss';
-
-   /* Define the cascading layers */
-   @layer theme, base, components, utilities;
-   ```
-
-3. **Theme Configuration**
-
-   Configure your theme variables in `globals.css` using the layer system:
-
-   ```css
-   @layer theme {
-     :root {
-       --background: hsl(240 10% 3.9%);
-       --foreground: hsl(0 0% 98%);
-       /* other variables */
-     }
-   }
-
-   @theme inline {
-     --color-background: var(--background);
-     --color-foreground: var(--foreground);
-     /* other mappings */
-   }
-   ```
-
-4. **Tailwind Configuration**
-
-   The `tailwind.config.js` file should use ES module export syntax:
-
-   ```js
-   /** @type {import('tailwindcss').Config} */
-   export default {
-     content: [
-       './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-       './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-       './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-     ],
-     theme: {
-       extend: {
-         // Theme extensions
-       },
-     },
-     plugins: [],
-   };
-   ```
-
-For a comprehensive guide on upgrading to Tailwind CSS v4 in a project with React 19 and shadcn/ui, see the [Tailwind CSS v4 Upgrade Guide](./TAILWIND_V4_UPGRADE.md).
-
-## React 19 and shadcn/ui Compatibility
-
-To ensure shadcn/ui components work with React 19:
-
-1. **Component Structure**
-
-   Components should use the `data-slot` attribute pattern instead of `forwardRef`:
-
-   ```tsx
-   function Button({ className, variant, size, asChild = false, ...props }: ButtonProps) {
-     const Comp = asChild ? Slot : 'button';
-     return (
-       <Comp
-         data-slot="button"
-         className={cn(buttonVariants({ variant, size, className }))}
-         {...props}
-       />
-     );
-   }
-   ```
-
-2. **Required Dependencies**
-
-   The following dependencies are required for shadcn/ui components:
-
-   ```bash
-   npm install -D @radix-ui/react-dialog @radix-ui/react-slot class-variance-authority clsx tailwind-merge lucide-react --legacy-peer-deps
-   ```
-
-3. **Utilities**
-
-   Ensure the `cn` utility function is properly defined in `src/lib/utils.ts`:
-
-   ```ts
-   import { type ClassValue, clsx } from 'clsx';
-   import { twMerge } from 'tailwind-merge';
-
-   export function cn(...inputs: ClassValue[]) {
-     return twMerge(clsx(...inputs));
-   }
-   ```
-
-## Project Structure
-
-- `src/app`: Next.js App Router pages and API routes
-- `src/components`: React components
-  - `src/components/ui`: shadcn/ui components
-- `src/lib`: Utility functions and services
-- `src/types`: TypeScript type definitions
-- `prisma`: Database schema and migrations
-- `docs`: Project documentation
-- `__tests__`: Test files
-
-## Module System & Configuration
-
-- **ES Modules**: This project uses ES modules (`"type": "module"` in `package.json`)
-- **Import/Export Syntax**: All files use ES module syntax (`import`/`export` instead of `require`/`module.exports`)
-- **Build Scripts**: Configuration files like `next.config.js`, `postcss.config.js`, and `scripts/verify-env.js` use ES module syntax
-
-## Troubleshooting Common Issues
-
-If you encounter issues:
-
-1. **Styling Issues**
-
-   - Clear Next.js cache: `rm -rf .next`
-   - Clear node_modules cache: `rm -rf node_modules/.cache`
-   - Verify your PostCSS configuration is using `@tailwindcss/postcss`
-   - Check your globals.css file for proper import and layer structure
-
-2. **Component Issues**
-
-   - Ensure components are not using `forwardRef`
-   - Verify `data-slot` attributes are used correctly
-   - Check for proper import paths and component exports
-
-3. **Next.js 15.2 Type Issues**
-
-   - For API route handler type errors, use the context pattern shown in the Next.js 15.2 Compatibility section
-   - As a last resort, use `context: any` to bypass type checking issues
-   - Check for proper parameter types in API route handlers
-
-4. **Dependency Conflicts**
-   - Use `--legacy-peer-deps` flag when installing new packages
-   - Check for conflicting React versions in your dependencies
-
-For more detailed troubleshooting, see the [Troubleshooting Guide](./TROUBLESHOOTING.md).
-
-## Testing
-
-Run tests using the following commands:
+- Node.js 18.0+ installed
+- npm or yarn package manager
+- Git for version control
+- Basic knowledge of Next.js, Prisma, and React
+
+## Clone the Repository
 
 ```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
-
-# Run end-to-end tests
-npm run test:e2e
+git clone https://github.com/yourusername/this-or-that.git
+cd this-or-that
 ```
 
-## Deployment
+## Environment Setup
 
-This project can be deployed to platforms like Vercel or Netlify. Make sure to:
+1. Create a `.env.local` file in the root directory with the following variables:
 
-1. Set up the required environment variables
-2. Configure the database connection (PostgreSQL recommended for production)
-3. Run database migrations before deployment
+```
+# Development SQLite database
+DATABASE_URL="file:./prisma/dev.db"
+DIRECT_URL="file:./prisma/dev.db"
 
-For detailed deployment instructions specific to each platform, refer to:
+# Local URLs for development
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_FRAME_POST_URL="http://localhost:3000/api/frame"
+NEXT_PUBLIC_FRAME_IMAGE_URL="http://localhost:3000/api/og"
 
-- [Vercel Deployment Guide](https://nextjs.org/docs/deployment)
-- [Netlify Deployment Guide](https://www.netlify.com/blog/2020/11/30/how-to-deploy-next.js-sites-to-netlify/)
+# Enable demo mode for testing without Farcaster auth
+NEXT_PUBLIC_ALLOW_DEMO_FID=true
+```
+
+2. If you're using additional services (optional):
+
+```
+# Sentry for error tracking (optional)
+SENTRY_DSN="your-sentry-dsn"
+
+# NextAuth secret (required if using auth)
+NEXTAUTH_SECRET="your-random-secure-string"
+```
+
+## Install Dependencies
+
+Install all required packages:
+
+```bash
+npm install
+```
+
+## Database Setup
+
+The application uses Prisma ORM with SQLite for local development and PostgreSQL for production. Here's how to set up the development database:
+
+1. Generate the Prisma client:
+
+```bash
+npx prisma generate
+```
+
+2. Push the schema to create the SQLite database:
+
+```bash
+npx prisma db push
+```
+
+3. Seed the database with initial data (optional):
+
+```bash
+npm run seed
+```
+
+## Run the Development Server
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The application should now be running at [http://localhost:3000](http://localhost:3000).
+
+## Verify Installation
+
+Verify the installation by:
+
+1. Opening [http://localhost:3000](http://localhost:3000) in your browser
+2. Checking that the homepage loads without errors
+3. Navigating to the `/demo` route to see example frame components
+
+If you encounter any issues, refer to the [Troubleshooting](#troubleshooting) section below.
+
+## Database Management
+
+### View and Edit Data
+
+You can use Prisma Studio to view and edit your database:
+
+```bash
+npx prisma studio
+```
+
+This will open a web interface at [http://localhost:5555](http://localhost:5555).
+
+### Reset the Database
+
+If you need to reset your database:
+
+```bash
+# Delete the SQLite database file
+rm -f prisma/dev.db
+
+# Recreate the database
+npx prisma db push
+
+# Re-seed the database (optional)
+npm run seed
+```
+
+## Working with Environment-Specific Database Configuration
+
+The application is configured to use different database setups for development and production:
+
+- **Development**: SQLite database (file-based)
+- **Production**: PostgreSQL database (hosted on Supabase)
+
+The `scripts/setup-env.js` script automatically configures the correct schema based on the environment:
+
+```bash
+# To manually run the environment setup
+node scripts/setup-env.js
+```
+
+## Additional Setup Steps
+
+### Configure for Farcaster Authentication
+
+If you want to test with real Farcaster authentication:
+
+1. Create a Farcaster developer app at [https://warpcast.com/~/developers](https://warpcast.com/~/developers)
+2. Add the authentication details to your `.env.local` file:
+
+```
+NEXT_PUBLIC_FARCASTER_AUTH_DOMAIN="your-domain.xyz"
+NEXT_PUBLIC_FARCASTER_AUTH_CALLBACK_URL="http://localhost:3000/api/auth/farcaster"
+```
+
+### Set Up Admin User (Optional)
+
+To access the admin dashboard:
+
+```bash
+npm run admin:init
+```
+
+This will create an admin user that you can use to access the `/admin` routes.
+
+## Troubleshooting
+
+### Browser Environment Errors
+
+If you encounter errors related to "PrismaClient cannot be used in browser environments":
+
+1. Make sure you are not importing the Prisma client directly in client components
+2. Use the database utility functions in `src/lib/db.ts` which are designed to be safe for SSR/SSG
+3. Check that server components are properly marked with the "use server" directive when needed
+
+### Database Connection Issues
+
+If you have issues connecting to the database:
+
+1. Verify the SQLite file exists: `ls -la prisma/dev.db`
+2. Ensure your `.env.local` file has the correct `DATABASE_URL` value
+3. Try recreating the database:
+
+```bash
+rm -f prisma/dev.db
+npx prisma db push
+```
+
+### Next.js Build Errors
+
+If you encounter build errors:
+
+1. Clean the Next.js cache: `npm run clean`
+2. Reinstall dependencies: `rm -rf node_modules && npm install`
+3. Run the build with verbose logging: `npm run build --verbose`
+
+## Development Workflow
+
+### Code Structure
+
+- `/src/app` - Next.js routes and server components
+- `/src/components` - Reusable UI components
+- `/src/lib` - Utility functions and shared logic
+- `/prisma` - Database schema and migrations
+
+### Key Development Commands
+
+```bash
+# Run development server
+npm run dev
+
+# Run linting
+npm run lint
+
+# Run tests
+npm run test
+
+# Format code
+npm run format
+
+# Build for production
+npm run build
+```
+
+## Next Steps
+
+After completing setup, you can:
+
+1. Explore the codebase structure
+2. Check out the demo routes at `/demo/*`
+3. Test frame functionality with the Warpcast Frame Playground
+4. Read the full documentation in the `/docs` directory
+
+For detailed information on specific features, refer to:
+
+- [Frame Implementation](/docs/FRAME_IMPLEMENTATION.md)
+- [Database Schema](/docs/DATABASE_SCHEMA.md)
+- [API Routes](/docs/api-routes.md)
+- [Authentication](/docs/FARCASTER_AUTH.md)

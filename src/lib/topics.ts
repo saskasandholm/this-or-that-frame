@@ -7,34 +7,39 @@ import { Topic } from '@prisma/client';
  * Note: This uses PrismaClient and should only be used in server components
  */
 export async function getCurrentTopic() {
-  const now = new Date();
+  try {
+    const now = new Date();
 
-  const currentTopic = await prisma.topic.findFirst({
-    where: {
-      isActive: true,
-      startDate: {
-        lte: now,
-      },
-      OR: [
-        {
-          endDate: null,
+    const currentTopic = await prisma.topic.findFirst({
+      where: {
+        isActive: true,
+        startDate: {
+          lte: now,
         },
-        {
-          endDate: {
-            gte: now,
+        OR: [
+          {
+            endDate: null,
           },
-        },
-      ],
-    },
-    include: {
-      category: true,
-    },
-    orderBy: {
-      startDate: 'desc',
-    },
-  });
+          {
+            endDate: {
+              gte: now,
+            },
+          },
+        ],
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
 
-  return currentTopic;
+    return currentTopic;
+  } catch (error) {
+    console.error('Error in getCurrentTopic:', error);
+    return null;
+  }
 }
 
 /**
@@ -63,27 +68,37 @@ export async function getCurrentTopicForEdge() {
  * Get a specific topic by ID
  */
 export async function getTopicById(id: number) {
-  return prisma.topic.findUnique({
-    where: { id },
-    include: {
-      category: true,
-    },
-  });
+  try {
+    return await prisma.topic.findUnique({
+      where: { id },
+      include: {
+        category: true,
+      },
+    });
+  } catch (error) {
+    console.error(`Error in getTopicById(${id}):`, error);
+    return null;
+  }
 }
 
 /**
  * Get all topics, optionally filtering by active status
  */
 export async function getAllTopics(activeOnly = false) {
-  return prisma.topic.findMany({
-    where: activeOnly ? { isActive: true } : undefined,
-    include: {
-      category: true,
-    },
-    orderBy: {
-      startDate: 'desc',
-    },
-  });
+  try {
+    return await prisma.topic.findMany({
+      where: activeOnly ? { isActive: true } : undefined,
+      include: {
+        category: true,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
+  } catch (error) {
+    console.error(`Error in getAllTopics(${activeOnly}):`, error);
+    return [];
+  }
 }
 
 /**
@@ -98,19 +113,24 @@ export interface TopicWithVotes extends Omit<Topic, 'votesA' | 'votesB'> {
  * Calculate voting statistics for a topic
  */
 export async function getTopicStats(topicId: number) {
-  const topic = (await prisma.topic.findUnique({
-    where: { id: topicId },
-  })) as TopicWithVotes | null;
+  try {
+    const topic = (await prisma.topic.findUnique({
+      where: { id: topicId },
+    })) as TopicWithVotes | null;
 
-  if (!topic) return null;
+    if (!topic) return null;
 
-  const totalVotes = (topic.votesA || 0) + (topic.votesB || 0);
+    const totalVotes = (topic.votesA || 0) + (topic.votesB || 0);
 
-  return {
-    totalVotes,
-    votesA: topic.votesA || 0,
-    votesB: topic.votesB || 0,
-    percentageA: totalVotes ? Math.round(((topic.votesA || 0) * 100) / totalVotes) : 0,
-    percentageB: totalVotes ? Math.round(((topic.votesB || 0) * 100) / totalVotes) : 0,
-  };
+    return {
+      totalVotes,
+      votesA: topic.votesA || 0,
+      votesB: topic.votesB || 0,
+      percentageA: totalVotes ? Math.round(((topic.votesA || 0) * 100) / totalVotes) : 0,
+      percentageB: totalVotes ? Math.round(((topic.votesB || 0) * 100) / totalVotes) : 0,
+    };
+  } catch (error) {
+    console.error(`Error in getTopicStats(${topicId}):`, error);
+    return null;
+  }
 }
