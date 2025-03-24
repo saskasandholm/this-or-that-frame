@@ -1,173 +1,223 @@
 'use client';
 
 import { SignInButton as FarcasterSignInButton } from '@farcaster/auth-kit';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { trackEvent } from '@/lib/analytics';
 import { trackError } from '@/lib/error-tracking';
+import type { AuthClientError, StatusAPIResponse } from '@farcaster/auth-kit';
+
+/**
+ * Helper to detect mobile devices
+ */
+function isMobile(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
 
 export function SignInButton({ className }: { className?: string }) {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [signInProgress, setSignInProgress] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // If still loading, show a loading state
-  if (isLoading) {
-    return (
-      <Button className={className} disabled>
-        <span className="mr-2">
-          <svg
-            className="animate-spin h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-        </span>
-        Loading...
-      </Button>
-    );
+  // Check if running on mobile
+  useEffect(() => {
+    setIsMobileDevice(isMobile());
+  }, []);
+
+  // Don't show the button if already authenticated or loading
+  if (isAuthenticated || isLoading) {
+    console.log('[SignInButton] Not rendering because:', { isAuthenticated, isLoading });
+    return null;
   }
 
-  // If authenticated, show user info
-  if (isAuthenticated && user) {
-    return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <img
-          src={user.pfpUrl || 'https://warpcast.com/~/assets/favicon.png'}
-          alt={user.displayName || user.username}
-          className="h-8 w-8 rounded-full"
-        />
-        <span className="font-medium">{user.displayName || user.username}</span>
-      </div>
-    );
-  }
+  const handleAuthError = (error: Error | string, source: string) => {
+    const errorMessage = error instanceof Error ? error.message : error;
+    console.error(`[SignInButton] ${source} error:`, error);
+    setAuthError(errorMessage);
+    setShowAuthDialog(true);
+    trackError(source, { error });
+    setSignInProgress(false);
+  };
 
-  // Otherwise, show our custom sign in button that wraps Farcaster's button
-  return (
-    <div className={`farcaster-button-wrapper ${className}`}>
-      <style jsx global>{`
-        /* Override Farcaster button styles to match our UI */
-        .farcaster-button-wrapper {
-          display: flex;
-          align-items: center;
-          height: 40px;
-          overflow: hidden;
-        }
+  const handleSuccess = async (response: StatusAPIResponse) => {
+    try {
+      console.log('[SignInButton] Auth success response:', {
+        keys: Object.keys(response),
+        hasSignature: !!response.signature,
+        hasMessage: !!response.message,
+        messageType: typeof response.message,
+        isMobile: isMobileDevice,
+      });
 
-        .farcaster-button-wrapper button.fc-authkit-button {
-          background-color: rgb(139, 92, 246) !important; /* Match our purple button */
-          border-radius: 0.5rem !important;
-          border: none !important;
-          padding: 0.5rem 1rem !important;
-          transition: background-color 0.2s ease !important;
-          font-family: var(--font-sans) !important;
-          font-weight: 500 !important;
-          box-shadow: none !important;
-          height: 40px !important;
-          width: auto !important;
-          min-width: 0 !important;
-          max-height: 40px !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
+      if (signInProgress) {
+        console.log('[SignInButton] Already processing sign-in, ignoring duplicate callback');
+        return;
+      }
 
-        .farcaster-button-wrapper button.fc-authkit-button:hover {
-          background-color: rgb(124, 58, 237) !important; /* Darker purple on hover */
-        }
+      setSignInProgress(true);
 
-        .farcaster-button-wrapper button.fc-authkit-button > div {
-          height: 100% !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          gap: 0.5rem !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
+      if (!response.message || !response.signature) {
+        throw new Error('Invalid authentication response');
+      }
 
-        .farcaster-button-wrapper button.fc-authkit-button > div > div {
-          display: flex !important;
-          align-items: center !important;
-          gap: 0.5rem !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
+      // Extract useful data from message if it's an object
+      let messageData: Record<string, unknown> = {};
+      if (typeof response.message === 'object' && response.message !== null) {
+        messageData = response.message as Record<string, unknown>;
+        console.log('[SignInButton] Message data:', messageData);
+      }
 
-        .farcaster-button-wrapper button.fc-authkit-button img {
-          width: 16px !important;
-          height: 16px !important;
-        }
+      // Notify the server about successful authentication with the full response
+      console.log('[SignInButton] Sending auth data to server');
+      const serverResponse = await fetch('/api/auth/farcaster', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+        body: JSON.stringify({
+          signature: response.signature,
+          message: response.message,
+          nonce: response.nonce,
+          isMobile: isMobileDevice,
+          userAgent: navigator.userAgent,
+        }),
+        credentials: 'include',
+      });
 
-        .farcaster-button-wrapper button.fc-authkit-button span {
-          font-size: 14px !important;
-        }
-      `}</style>
-      <FarcasterSignInButton
-        onSuccess={async response => {
-          console.log('Authentication successful!', response);
-          setIsSigningIn(true);
+      // Read headers before consuming the response body
+      const setCookieHeader = serverResponse.headers.get('set-cookie');
+      const contentTypeHeader = serverResponse.headers.get('content-type');
 
-          try {
-            // Extract the signature and message
-            const { signature, message } = response;
+      const responseData = await serverResponse.json();
+      console.log('[SignInButton] Server auth response:', {
+        status: serverResponse.status,
+        ok: serverResponse.ok,
+        statusText: serverResponse.statusText,
+        data: responseData,
+        headers: {
+          contentType: contentTypeHeader,
+          setCookie: setCookieHeader ? 'present' : 'absent',
+        },
+      });
 
-            // Send to our server endpoint for verification
-            const serverResponse = await fetch('/api/auth/farcaster', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ signature, message }),
-            });
+      if (!serverResponse.ok) {
+        // If we get an authentication error, try again one more time
+        if (serverResponse.status === 401 && retryCount < 2) {
+          setRetryCount(count => count + 1);
+          setSignInProgress(false);
+          console.log(`[SignInButton] Auth failed, will retry (attempt ${retryCount + 1}/2)`);
 
-            if (!serverResponse.ok) {
-              const errorData = await serverResponse.json();
-              throw new Error(errorData.error || 'Failed to authenticate on server');
-            }
-
-            // Successfully authenticated with the server
-            trackEvent('auth_success', {
-              method: 'farcaster',
-            });
-
-            // Reload the page to update the UI with the authenticated state
+          // Wait a moment before retrying
+          setTimeout(() => {
+            // Trigger the auth flow again
             window.location.reload();
-          } catch (error) {
-            console.error('Server authentication error:', error);
-            trackError('Server authentication error', { error });
-            trackEvent('auth_server_error', {
-              method: 'farcaster',
-              error: error instanceof Error ? error.message : 'Unknown error',
-            });
-          } finally {
-            setIsSigningIn(false);
-          }
-        }}
-        onError={error => {
-          console.error('Authentication error:', error);
-          setIsSigningIn(false);
-          trackError('Authentication error', { error: error ? error.message : 'Unknown error' });
-          trackEvent('auth_error', {
-            method: 'farcaster',
-            error: error ? error.message : 'Unknown error',
+          }, 1000);
+          return;
+        }
+
+        throw new Error(responseData.error || 'Failed to create server session');
+      }
+
+      // Track successful authentication
+      trackEvent('auth_success', { method: 'farcaster' });
+
+      // Wait a moment to ensure cookies are set
+      const waitTime = isMobileDevice ? 2500 : 1500;
+      console.log(`[SignInButton] Waiting ${waitTime}ms before reload...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+
+      // Check if cookies were actually set
+      const cookies = document.cookie.split(';').map(c => c.trim());
+      const hasCookiesSet = cookies.some(
+        c =>
+          c.startsWith('farcaster_auth_check=') ||
+          c.startsWith('farcaster_auth_check_lax=') ||
+          c.startsWith('farcaster_auth_check_none=')
+      );
+
+      console.log('[SignInButton] Cookies before reload:', {
+        hasCookiesSet,
+        cookies: cookies.map(c => c.split('=')[0]),
+        rawCookie: document.cookie.substring(0, 100) + (document.cookie.length > 100 ? '...' : ''),
+      });
+
+      if (!hasCookiesSet) {
+        console.warn('[SignInButton] No auth cookies detected after successful authentication');
+        // Attempt to recover by explicitly hitting the debug endpoint
+        try {
+          const debugResponse = await fetch('/api/debug/cookies', {
+            credentials: 'include',
+            headers: { 'Cache-Control': 'no-cache' },
           });
-        }}
-      />
-    </div>
+          const debugData = await debugResponse.json();
+          console.log('[SignInButton] Cookie debug data:', debugData);
+        } catch (e) {
+          console.error('[SignInButton] Failed to fetch cookie debug data:', e);
+        }
+      }
+
+      if (isMobileDevice) {
+        // Use a custom URL parameter to identify this is a post-auth reload
+        const reloadUrl =
+          window.location.pathname +
+          '?auth=completed&t=' +
+          Date.now() +
+          '&mobile=true' +
+          '&cookies=' +
+          (hasCookiesSet ? 'true' : 'false');
+
+        console.log('[SignInButton] Redirecting mobile to:', reloadUrl);
+        window.location.href = reloadUrl;
+      } else {
+        // Reload the page to update auth state
+        console.log('[SignInButton] Reloading page to update auth state');
+        window.location.reload();
+      }
+    } catch (error) {
+      handleAuthError(error as Error, 'Server authentication');
+    }
+  };
+
+  console.log('[SignInButton] Rendering button');
+  return (
+    <>
+      <div className={className}>
+        <FarcasterSignInButton
+          onSuccess={handleSuccess}
+          onError={(error: AuthClientError | undefined) => {
+            handleAuthError(
+              error?.message || 'Failed to authenticate with Farcaster',
+              'Farcaster auth'
+            );
+          }}
+          timeout={300000} // 5 minutes timeout
+        />
+      </div>
+
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Authentication Error</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">{authError}</p>
+            <div className="mt-4 flex justify-end space-x-2">
+              <Button onClick={() => window.location.reload()} variant="secondary">
+                Reload Page
+              </Button>
+              <Button onClick={() => setShowAuthDialog(false)}>Close</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
