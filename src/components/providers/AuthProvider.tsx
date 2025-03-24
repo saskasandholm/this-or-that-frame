@@ -13,6 +13,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Use state to store the config that will be updated on the client side
   const [config, setConfig] = useState(authKitConfig);
   const [isClient, setIsClient] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Update the config with browser-specific values after mount
   useEffect(() => {
@@ -20,20 +21,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Safe access to window properties
     if (typeof window !== 'undefined') {
-      const host = window.location.host;
-      const protocol = window.location.protocol;
-      const origin = `${protocol}//${host}`;
+      try {
+        const host = window.location.host;
+        const protocol = window.location.protocol;
+        const origin = `${protocol}//${host}`;
 
-      setConfig({
-        ...authKitConfig,
-        domain: host, // Use the current hostname
-        siweUri: origin, // Use the current origin
-      });
+        // Make sure domain doesn't include port if it's using standard ports
+        const domain = host.replace(/:80$|:443$/, '');
 
-      console.log('[AuthProvider] Updated config with browser values:', {
-        host,
-        origin,
-      });
+        const updatedConfig = {
+          ...authKitConfig,
+          domain, // Use the current hostname
+          siweUri: origin, // Use the current origin
+          rpcUrl: 'https://mainnet.optimism.io', // Ensure we use a reliable RPC
+          relay: 'https://relay.farcaster.xyz', // Ensure relay is set
+          version: 'v1',
+        };
+
+        setConfig(updatedConfig);
+        setHasInitialized(true);
+
+        console.log('[AuthProvider] Updated config with browser values:', {
+          host,
+          domain,
+          origin,
+          config: updatedConfig,
+        });
+      } catch (error) {
+        console.error('[AuthProvider] Error initializing config:', error);
+      }
     }
   }, []);
 
@@ -119,7 +135,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       `}</style>
       <QueryClientProvider client={queryClient}>
-        <AuthKitProvider config={config}>{children}</AuthKitProvider>
+        {hasInitialized ? (
+          <AuthKitProvider config={config}>{children}</AuthKitProvider>
+        ) : (
+          // Show a minimal loading state while config initializes
+          <div className="min-h-screen flex items-center justify-center">{children}</div>
+        )}
       </QueryClientProvider>
     </>
   );
