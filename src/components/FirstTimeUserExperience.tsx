@@ -24,12 +24,27 @@ const FirstTimeUserExperience: React.FC<FirstTimeUserExperienceProps> = ({
 
   useEffect(() => {
     if (isReady) {
+      // Log when FTUE component mounts
+      console.log('[FTUE] Component mounted with state:', {
+        isReady,
+        currentStep,
+        isVisible,
+        stepsToShow: showSteps
+      });
+      
       // Play welcome sound when component appears
       AudioService.play('pop');
       // Add subtle haptic feedback on component mount
       HapticService.medium();
     }
   }, [isReady]);
+
+  // Check when the component is unmounted
+  useEffect(() => {
+    return () => {
+      console.log('[FTUE] Component unmounted');
+    };
+  }, []);
 
   const handleNext = () => {
     // Play audio feedback
@@ -39,8 +54,10 @@ const FirstTimeUserExperience: React.FC<FirstTimeUserExperienceProps> = ({
 
     if (currentStep < showSteps.length - 1) {
       setCurrentStep(currentStep + 1);
+      console.log(`[FTUE] Moving to step ${currentStep + 1}: ${showSteps[currentStep + 1]}`);
     } else {
       // Exit the FTUE
+      console.log('[FTUE] Completing experience, calling onComplete');
       setIsVisible(false);
       // Add success haptic feedback on completion
       HapticService.heavy();

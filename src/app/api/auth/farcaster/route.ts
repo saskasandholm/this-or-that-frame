@@ -210,24 +210,68 @@ export async function POST(req: NextRequest) {
 
     try {
       // Try to extract user data from message
-      const messageObj =
-        typeof message === 'object'
-          ? message
-          : typeof message === 'string'
-            ? JSON.parse(message)
-            : {};
-
+      let messageObj: Record<string, any> = {};
+      
+      // Handle different message formats
+      if (typeof message === 'object' && message !== null) {
+        messageObj = message as Record<string, any>;
+        console.log('[Server Auth] Message is already an object:', { 
+          keys: Object.keys(messageObj),
+          messageType: typeof message
+        });
+      } else if (typeof message === 'string') {
+        try {
+          // First check if it's valid JSON
+          if (message.trim().startsWith('{') && message.trim().endsWith('}')) {
+            messageObj = JSON.parse(message);
+            console.log('[Server Auth] Successfully parsed message as JSON');
+          } else {
+            // Handle SIWE message format which contains key-value pairs
+            console.log('[Server Auth] Message is not JSON, treating as SIWE message string:', { 
+              messageLength: message.length,
+              messageSample: message.substring(0, 100) + '...'
+            });
+            
+            // Try to extract data from SIWE message format
+            const fidMatch = message.match(/fid:\s*(\d+)/i);
+            const usernameMatch = message.match(/username:\s*([^,\n]+)/i);
+            const displayNameMatch = message.match(/displayName:\s*([^,\n]+)/i);
+            
+            if (fidMatch && fidMatch[1]) {
+              const extractedFid = parseInt(fidMatch[1], 10);
+              if (!isNaN(extractedFid)) {
+                messageObj.fid = extractedFid;
+              }
+            }
+            
+            if (usernameMatch && usernameMatch[1]) {
+              messageObj.username = usernameMatch[1].trim();
+            }
+            
+            if (displayNameMatch && displayNameMatch[1]) {
+              messageObj.displayName = displayNameMatch[1].trim();
+            }
+            
+            console.log('[Server Auth] Extracted from SIWE message:', messageObj);
+          }
+        } catch (parseError) {
+          console.error('[Server Auth] JSON parse error:', parseError);
+          // We'll continue with the empty messageObj
+        }
+      }
+                   
       // If Farcaster returns verification data with user profile, prefer that
       if (verifyResponse && verifyResponse.userInfo) {
+        console.log('[Server Auth] Using user info from verification response');
         userData = {
           fid,
           username: verifyResponse.userInfo.username || '',
-          displayName:
-            verifyResponse.userInfo.displayName || verifyResponse.userInfo.username || '',
+          displayName: verifyResponse.userInfo.displayName || verifyResponse.userInfo.username || '',
           pfpUrl: verifyResponse.userInfo.pfp?.url || '',
         };
       } else {
         // Otherwise use data from message
+        console.log('[Server Auth] Using data from message object');
         userData = {
           fid,
           username: messageObj.username || '',
@@ -235,16 +279,18 @@ export async function POST(req: NextRequest) {
           pfpUrl: messageObj.pfpUrl || '',
         };
       }
+      
+      console.log('[Server Auth] Final user data:', {
+        fid: userData.fid,
+        username: userData.username || '[none]',
+        displayName: userData.displayName || '[none]',
+        pfpUrl: userData.pfpUrl ? 'present' : 'absent'
+      });
     } catch (_error) {
-      console.error('[Server Auth] Error parsing user data:', _error);
+      console.error('[Server Auth] Error processing user data:', _error);
       // Minimal fallback if we can't extract user data but have a valid FID
       userData = { fid, username: '', displayName: '', pfpUrl: '' };
     }
-
-    console.log('[Server Auth] User data extracted:', {
-      fid: userData.fid,
-      username: userData.username || '[none]',
-    });
 
     // Store or update user in database
     try {

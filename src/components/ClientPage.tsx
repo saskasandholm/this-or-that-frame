@@ -254,14 +254,74 @@ const ClientPage = ({
   });
 
   const [showFirstTimeExperience, setShowFirstTimeExperience] = useState(() => {
-    if (forceFirstTimeExperience !== undefined) return forceFirstTimeExperience;
-
+    // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
-      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
-      return hasSeenIntro !== 'true';
+      try {
+        // Check for auth cookies
+        const hasAuthCookie = document.cookie.split(';').some(cookie => 
+          cookie.trim().startsWith('farcaster_auth=') ||
+          cookie.trim().startsWith('farcaster_auth_lax=') ||
+          cookie.trim().startsWith('farcaster_auth_none=')
+        );
+        
+        // Check for FTUE completed flag
+        const hasCompletedFTUE = localStorage.getItem('ftue_completed') === 'true';
+        
+        // Only show FTUE if explicitly forced or if no auth cookie and not completed before
+        const shouldShowFTUE = forceFirstTimeExperience || (!hasAuthCookie && !hasCompletedFTUE);
+        
+        console.log('[ClientPage] FTUE initialization:', {
+          forceFirstTimeExperience,
+          hasAuthCookie,
+          hasCompletedFTUE,
+          shouldShowFTUE,
+          cookies: document.cookie.split(';').map(c => c.trim()).filter(Boolean).length
+        });
+        
+        return shouldShowFTUE;
+      } catch (error) {
+        console.error('[ClientPage] Error initializing FTUE state:', error);
+        return !!forceFirstTimeExperience;
+      }
     }
-    return true;
+    return !!forceFirstTimeExperience;
   });
+
+  // Add effect to handle authentication changes
+  useEffect(() => {
+    const checkAuthState = () => {
+      const hasAuthCookie = document.cookie.split(';').some(cookie => 
+        cookie.trim().startsWith('farcaster_auth=') ||
+        cookie.trim().startsWith('farcaster_auth_lax=') ||
+        cookie.trim().startsWith('farcaster_auth_none=')
+      );
+      
+      if (hasAuthCookie && showFirstTimeExperience) {
+        console.log('[ClientPage] Auth detected, hiding FTUE');
+        setShowFirstTimeExperience(false);
+      }
+    };
+    
+    // Check initially
+    checkAuthState();
+    
+    // Setup interval to check auth state periodically (helpful for login redirects)
+    const intervalId = setInterval(checkAuthState, 2000);
+    
+    // Setup visibility change handler
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAuthState();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [showFirstTimeExperience]);
 
   // Use provided trending topics if available, otherwise use fetched ones
   const displayTrendingTopics = providedTrendingTopics || trendingTopics;
@@ -403,8 +463,15 @@ const ClientPage = ({
   );
 
   const handleCompleteFirstTimeExperience = useCallback(() => {
+    console.log('[ClientPage] Completing FTUE experience');
     setShowFirstTimeExperience(false);
-    localStorage.setItem('hasSeenIntro', 'true');
+    
+    try {
+      localStorage.setItem('ftue_completed', 'true');
+      console.log('[ClientPage] Saved FTUE completion to localStorage');
+    } catch (error) {
+      console.error('[ClientPage] Error saving FTUE state:', error);
+    }
   }, []);
 
   const handleCloseFrameSavePrompt = useCallback(() => {
@@ -541,7 +608,10 @@ const ClientPage = ({
 
       <AnimatePresence mode="wait">
         {showFirstTimeExperience ? (
-          <FirstTimeUserExperience onComplete={() => setShowFirstTimeExperience(false)} />
+          <FirstTimeUserExperience 
+            onComplete={handleCompleteFirstTimeExperience} 
+            showSteps={['welcome', 'voting', 'streaks', 'achievements']}
+          />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
