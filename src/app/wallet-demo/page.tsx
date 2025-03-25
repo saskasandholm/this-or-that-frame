@@ -1,3 +1,5 @@
+'use client';
+
 import { Suspense } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import dynamicImport from 'next/dynamic';
