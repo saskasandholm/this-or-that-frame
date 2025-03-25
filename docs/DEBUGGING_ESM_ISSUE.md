@@ -1,5 +1,8 @@
 # ESM/CommonJS Compatibility Issue
 
+*Last Updated: March 25, 2025*
+
+
 ## Issue Description
 
 The application is currently experiencing a critical error related to ES Modules compatibility with Next.js:

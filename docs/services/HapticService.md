@@ -1,5 +1,8 @@
 # HapticService
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The HapticService provides haptic feedback capabilities throughout the application using the Navigator Vibration API. It offers various vibration patterns and intensities for different user interactions, enhancing the tactile experience on supported devices while gracefully degrading on unsupported platforms.

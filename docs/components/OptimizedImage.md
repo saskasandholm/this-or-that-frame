@@ -1,5 +1,8 @@
 # OptimizedImage Component
 
+*Last Updated: March 25, 2025*
+
+
 The `OptimizedImage` component is a wrapper around Next.js's `Image` component that adds enhanced functionality for improved image loading, error handling, and performance optimization.
 
 ## Table of Contents

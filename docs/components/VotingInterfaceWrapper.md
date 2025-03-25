@@ -1,5 +1,8 @@
 # VotingInterfaceWrapper Component
 
+*Last Updated: March 25, 2025*
+
+
 The `VotingInterfaceWrapper` is an adapter component that enables seamless integration of the modern `VotingInterface` component with the existing application architecture, providing backward compatibility with the legacy `ContextAwareTopicView` API.
 
 ## Table of Contents

@@ -1,5 +1,8 @@
 # TransactionSender Component
 
+*Last Updated: March 25, 2025*
+
+
 A React component that enables users to send Ethereum transactions through their connected Farcaster wallet.
 
 ## Table of Contents

@@ -1,5 +1,8 @@
 # MessageSigner Component
 
+*Last Updated: March 25, 2025*
+
+
 A React component that enables users to sign messages and typed data using their connected Farcaster wallet.
 
 ## Table of Contents

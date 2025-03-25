@@ -1,5 +1,8 @@
 # Database Schema
 
+*Last Updated: March 25, 2025*
+
+
 This document outlines the database schema for the "This or That" Farcaster Frame application, implemented using Prisma ORM.
 
 ## Overview

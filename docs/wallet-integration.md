@@ -1,5 +1,8 @@
 # Farcaster Wallet Integration Guide
 
+*Last Updated: March 25, 2025*
+
+
 This guide covers wallet integration with Farcaster Frames v2, allowing your application to connect to user wallets and perform blockchain transactions.
 
 ## Table of Contents

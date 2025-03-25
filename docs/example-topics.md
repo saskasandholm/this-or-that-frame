@@ -1,5 +1,8 @@
 # This or That: 50 Engaging Binary Choice Topics
 
+*Last Updated: March 25, 2025*
+
+
 This document contains a curated list of 50 engaging binary choice topics for the "This or That" frame, organized by category.
 
 ## Crypto Fundamentals

@@ -1,5 +1,8 @@
 # Pagination Component
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The Pagination component provides an accessible and user-friendly interface for navigating through large sets of data or content that has been divided into separate pages. It includes intuitive controls for moving between pages and visual indicators of the current position within the total set.

@@ -1,5 +1,8 @@
 # Documentation Update Plan
 
+*Last Updated: March 25, 2025*
+
+
 This document outlines the plan for updating and enhancing the project documentation to ensure it remains accurate, comprehensive, and useful for all contributors.
 
 ## 1. Active Documentation Review

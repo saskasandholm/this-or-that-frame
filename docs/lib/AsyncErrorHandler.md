@@ -1,5 +1,8 @@
 # AsyncErrorHandler Utility
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The AsyncErrorHandler utility provides a standardized approach to handling asynchronous errors throughout the application. It ensures consistent error formatting, proper error logging, and offers hooks for React components to easily manage asynchronous operations with error handling. This is a core part of the application's error handling strategy, complementing the ErrorBoundary for asynchronous code.

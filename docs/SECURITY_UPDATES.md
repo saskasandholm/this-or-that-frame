@@ -1,5 +1,8 @@
 # Security Updates
 
+*Last Updated: March 25, 2025*
+
+
 This document outlines the latest security considerations and improvements implemented in the This or That Farcaster Frame application.
 
 ## Database Security

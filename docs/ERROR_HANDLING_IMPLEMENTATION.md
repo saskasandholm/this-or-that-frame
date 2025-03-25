@@ -1,5 +1,8 @@
 # Error Handling Implementation
 
+*Last Updated: March 25, 2025*
+
+
 This document provides an overview of the error handling implementation in the Farcaster Frame application, including the components created, changes to existing code, and usage guidelines.
 
 ## Implementation Status

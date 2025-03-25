@@ -1,5 +1,8 @@
 # Authentication with Farcaster AuthKit
 
+*Last Updated: March 25, 2025*
+
+
 This documentation outlines the authentication system used in the This-or-That application, which utilizes Farcaster's AuthKit for user authentication.
 
 ## Overview

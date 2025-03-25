@@ -1,5 +1,8 @@
 # Error Handling Strategy
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 This document outlines the comprehensive error handling strategy for the "This or That" Farcaster Frame application. A robust error handling system is critical for providing a reliable user experience, especially in decentralized applications that interact with blockchain networks.

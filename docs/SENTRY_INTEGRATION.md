@@ -1,5 +1,8 @@
 # Sentry Integration Guide for Next.js with ES Modules
 
+*Last Updated: March 25, 2025*
+
+
 This guide explains how to properly integrate Sentry with Next.js when your project is using ES modules (`"type": "module"` in `package.json`).
 
 ## Current Status

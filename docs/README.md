@@ -1,63 +1,44 @@
-# Documentation Index
+# Frame Project Documentation Index
 
-This directory contains comprehensive documentation for the "This or That" Farcaster Frame application.
+*Last Updated: March 25, 2024*
 
-## Quick Start Guides
 
-- **[Setup Guide](/docs/SETUP.md)** - How to set up the application for local development
-- **[Troubleshooting Guide](/docs/TROUBLESHOOTING.md)** - Solutions to common problems
-- **[Deployment Guide](/docs/DEPLOYMENT.md)** - How to deploy the application to production
-- **[Frame Testing Guide](/docs/FRAME_TESTING.md)** - How to test frames in Warpcast
+## Getting Started
+- [Setup Guide](./SETUP.md) - Initial project setup and configuration
+- [Authentication Guide](./consolidated/AUTH_GUIDE.md) - Authentication and wallet integration
+- [Database Guide](./consolidated/DATABASE.md) - Database schema, setup, and optimization
 
-## Latest Updates
+## Architecture
+- [Project Overview](./PROJECT_OVERVIEW.md) - High-level application architecture 
+- [API Routes](./api-routes.md) - API endpoints and implementation details
+- [Component Architecture](./architecture.md) - Frontend component structure
 
-- **[Database Setup](/docs/DATABASE_SETUP.md)** - Updated configuration for Next.js 15.2 with Prisma
-- **[Database Refresh](/docs/refresh.md)** - Recent optimizations and browser error resolutions
-- **[Error Handling Implementation](/docs/ERROR_HANDLING_IMPLEMENTATION.md)** - Enhanced error handling across the application
-- **[Security Updates](/docs/SECURITY_UPDATES.md)** - Latest security considerations
+## Features
+- [Farcaster Frame Guide](./consolidated/FRAME_GUIDE.md) - Comprehensive Frame implementation and testing
 
-## Architecture & Design
+## Deployment
+- [Deployment Guide](./DEPLOYMENT.md) - Deployment instructions and best practices
 
-- **[Project Overview](/docs/PROJECT_OVERVIEW.md)** - High-level overview of the project
-- **[System Architecture](/docs/architecture.md)** - Technical architecture of the application
-- **[Database Schema](/docs/DATABASE_SCHEMA.md)** - Database structure and models
-- **[API Routes](/docs/api-routes.md)** - API endpoint documentation
+## Operations
+- [Error Handling & Monitoring](./consolidated/ERROR_HANDLING.md) - Error handling strategy and monitoring
+- [Security Updates](./SECURITY_UPDATES.md) - Security practices and updates
 
-## Feature Documentation
+## Admin
+- [Admin Guide](./admin.md) - Administration tools and processes
 
-- **[Frame Implementation](/docs/FRAME_IMPLEMENTATION.md)** - How Farcaster Frames are implemented
-- **[Farcaster Authentication](/docs/FARCASTER_AUTH.md)** - Authentication with Farcaster
-- **[Wallet Integration](/docs/wallet-integration.md)** - Connecting to user wallets
-- **[Admin Dashboard](/docs/admin.md)** - Admin functionality and usage
+## Development
+- [Testing Strategy](./testing-strategy.md) - Testing philosophy and methods
+- [Troubleshooting](./TROUBLESHOOTING.md) - Common issues and solutions
 
-## Development Resources
-
-- **[Error Handling Strategy](/docs/ERROR_HANDLING_STRATEGY.md)** - Overall error handling approach
-- **[Testing Strategy](/docs/testing-strategy.md)** - Approach to testing the application
-- **[Future Improvements](/docs/future-improvements.md)** - Planned enhancements
-- **[Implementation Tracker](/docs/IMPLEMENTATION_TRACKER.md)** - Status of feature implementation
-
-## Technical References
-
-- **[Frame Meta Tags](/docs/frame-meta-tags.md)** - Meta tags for Farcaster Frames
-- **[Example Topics](/docs/example-topics.md)** - Sample content for the application
-- **[Sentry Integration](/docs/SENTRY_INTEGRATION.md)** - Error monitoring with Sentry
-
-## Component Documentation
-
-- **[UI Components](/docs/components/README.md)** - Documentation for reusable components
-
-## Optimization & Performance
-
-- **[Database Optimization Plan](/docs/DATABASE_OPTIMIZATION_PLAN.md)** - Performance improvements for database operations
-- **[Error Monitoring Implementation](/docs/ERROR_MONITORING_IMPLEMENTATION.md)** - Monitoring with Sentry
-
-## Contributing & Standards
-
-- **[Documentation Plan](/docs/DOCUMENTATION_PLAN.md)** - Standards and approach to documentation
-- **[Updated Project Plan](/docs/UPDATED_PROJECT_PLAN.md)** - Latest project roadmap
+## Standards & Processes
+- [Documentation Standards](./maintained/DOCUMENTATION_STANDARD.md) - Guidelines for documentation
 
 ## Archived Documentation
+- All archived documentation has been consolidated in the [archive-consolidated](./archive-consolidated) directory
+- Previously consolidated files are now archived with notices pointing to their new locations
 
-> Note: Some documentation in this directory may be outdated or superseded by newer versions.
-> These files are kept for historical reference.
+## Maintenance Notes
+- Future documentation should follow the categories established in this index
+- Documentation files should include a "Last Updated" timestamp
+- Regular documentation reviews should occur alongside code reviews
+- Run `npm run docs:maintenance` to automatically update documentation timestamps

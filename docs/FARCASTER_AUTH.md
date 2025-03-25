@@ -1,5 +1,8 @@
 # Farcaster Authentication Integration
 
+*Last Updated: March 25, 2025*
+
+
 This document outlines how Farcaster authentication is implemented in the "This or That" application.
 
 ## Overview

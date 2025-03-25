@@ -1,5 +1,8 @@
 # Table Component
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The Table component provides a set of accessible, styled table elements for displaying structured data. It follows a compositional approach where you can combine different table sub-components (TableHeader, TableBody, TableRow, etc.) to create customized table layouts while maintaining consistent styling and accessibility.

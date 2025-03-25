@@ -1,5 +1,8 @@
 # TrendingTopicCard Component
 
+*Last Updated: March 25, 2025*
+
+
 The `TrendingTopicCard` component displays trending topics in a visually appealing card format, showing key information like ranking, category, vote count, and trend direction.
 
 ## Table of Contents

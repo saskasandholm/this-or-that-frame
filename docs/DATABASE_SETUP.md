@@ -1,5 +1,8 @@
 # Database Setup and Configuration
 
+*Last Updated: March 25, 2025*
+
+
 This document outlines the database setup for the "This or That" Farcaster Frame application, focusing on how the Prisma ORM is configured to work optimally in both development and production environments.
 
 ## Overview

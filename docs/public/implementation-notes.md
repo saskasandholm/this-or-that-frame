@@ -1,5 +1,8 @@
 # Implementation Notes
 
+*Last Updated: March 25, 2025*
+
+
 ## Frame Manifest Implementation
 
 The Frame Manifest is implemented by serving a JSON file at the `.well-known/farcaster.json` path. This is achieved through:

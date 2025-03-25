@@ -1,5 +1,8 @@
 # This or That - Project Overview
 
+*Last Updated: March 25, 2025*
+
+
 ## What is "This or That"?
 
 "This or That" is a Farcaster Frame application that presents users with binary choices on engaging topics, collects their votes, and shows how they compare with the community. This simple mechanic drives viral sharing as users discover where they stand relative to others.

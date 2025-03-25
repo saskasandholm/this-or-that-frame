@@ -1,5 +1,8 @@
 # TokenBalance Component
 
+*Last Updated: March 25, 2025*
+
+
 A React component that displays a user's token balance for both native tokens (ETH) and ERC20 tokens.
 
 ## Table of Contents

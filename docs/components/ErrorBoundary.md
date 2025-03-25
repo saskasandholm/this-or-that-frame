@@ -1,5 +1,8 @@
 # ErrorBoundary Component
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The ErrorBoundary component catches JavaScript errors in its child component tree and displays a fallback UI instead of crashing the entire application. It is a crucial part of the application's error handling strategy, ensuring that isolated component failures don't compromise the entire user experience.

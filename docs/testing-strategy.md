@@ -1,5 +1,8 @@
 # Testing Strategy
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 This document outlines the testing strategy for the Frame application. Our testing approach is comprehensive, covering multiple types of tests to ensure the reliability, functionality, and user experience of the application.

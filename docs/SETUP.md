@@ -1,5 +1,8 @@
 # Setup Guide for This or That Frame Application
 
+*Last Updated: March 25, 2025*
+
+
 This guide will walk you through setting up the "This or That" Farcaster Frame application for local development.
 
 ## Prerequisites

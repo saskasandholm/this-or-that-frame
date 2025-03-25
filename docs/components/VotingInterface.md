@@ -1,5 +1,8 @@
 # VotingInterface Component
 
+*Last Updated: March 25, 2025*
+
+
 The `VotingInterface` component provides a polished and interactive voting experience for the "This or That" application. It enables users to vote on binary options and view results with animations and visual feedback.
 
 ## Table of Contents

@@ -1,5 +1,8 @@
 # Frame Meta Tags for Farcaster Frames v2
 
+*Last Updated: March 25, 2025*
+
+
 This document explains how to implement the meta tags required for Farcaster Frames v2.
 
 ## Overview

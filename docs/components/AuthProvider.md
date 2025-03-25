@@ -1,5 +1,8 @@
 # AuthProvider Component
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The `AuthProvider` component serves as the authentication context provider for the application, integrating Farcaster's Auth-kit. It enables "Sign in with Farcaster" functionality and manages authentication state throughout the application, making user data accessible to all components.

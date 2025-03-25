@@ -1,5 +1,8 @@
 # WagmiProvider Component
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The `WagmiProvider` component serves as the wallet integration provider for the application, enabling connectivity to Ethereum wallets through Farcaster Frames. It establishes the foundation for blockchain interactions such as connecting to wallets, sending transactions, and signing messages directly from the application.

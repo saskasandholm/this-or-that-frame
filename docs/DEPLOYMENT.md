@@ -1,5 +1,7 @@
 # Deployment Guide
 
+*Last Updated: March 25, 2025*
+
 ## Prerequisites
 
 - Node.js 18.0+
@@ -80,17 +82,50 @@ git push -u origin main
 
 ### 3. Vercel Deployment
 
-1. Connect your GitHub repository to Vercel
-2. Configure environment variables in Vercel dashboard
-3. Deploy using Vercel dashboard or CLI:
+### Deployment Date
 
-```bash
-# Using Vercel CLI
-vercel
+- Last Production Deployment: March 21, 2024
 
-# For production deployment
-vercel --prod
-```
+### Current Deployment
+
+- **Production URL**: [https://frame-lovat.vercel.app](https://frame-lovat.vercel.app)
+- **Frame API URL**: [https://frame-lovat.vercel.app/api](https://frame-lovat.vercel.app/api)
+
+### Environment Variables
+
+The following environment variables must be set in your Vercel project settings:
+
+- `DATABASE_URL`: Connection string to your Supabase PostgreSQL database
+- `NEXT_PUBLIC_FARCASTER_HUB_URL`: URL for the Farcaster hub (e.g., `https://hub.farcaster.xyz`)
+- `NEXT_PUBLIC_SITE_URL`: The URL where your application is deployed
+
+### Build Settings
+
+- **Framework Preset**: Next.js
+- **Build Command**: `npm run build`
+- **Output Directory**: `.next`
+- **Node.js Version**: 18.x
+
+### Post-Deployment Verification
+
+After deploying your Frame, verify it works correctly:
+
+1. Go to [https://warpcast.com/~/developers/frames](https://warpcast.com/~/developers/frames)
+2. Enter your deployed Frame URL
+3. Verify the frame renders correctly and interactions work as expected
+
+See [FRAME_TESTING.md](./FRAME_TESTING.md) for more detailed testing procedures.
+
+## Troubleshooting Deployment Issues
+
+If you encounter deployment issues, check:
+
+1. **Environment Variables**: Ensure all required environment variables are properly set
+2. **Database Connection**: Verify the database connection string is correct 
+3. **Build Logs**: Review the Vercel build logs for errors
+4. **API Routes**: Test API endpoints directly to isolate frame-specific issues
+
+For more specific troubleshooting, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
 
 ### 4. Post-Deployment Verification
 

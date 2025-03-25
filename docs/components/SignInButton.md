@@ -1,5 +1,8 @@
 # SignInButton Component
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The `SignInButton` component provides the "Sign in with Farcaster" functionality for the application. It wraps the Farcaster Auth-kit's built-in sign-in button with additional styling, error handling, and state management to better integrate with the application's design system.

@@ -1,5 +1,8 @@
 # WalletConnectionButton Component
 
+*Last Updated: March 25, 2025*
+
+
 A React component that provides a user interface for connecting and disconnecting a wallet using the Farcaster Frame SDK.
 
 ## Table of Contents

@@ -1,5 +1,8 @@
 # FriendLeaderboard Component
 
+*Last Updated: March 25, 2025*
+
+
 ## Overview
 
 The FriendLeaderboard component displays a social ranking interface that shows how users compare with their friends and global leaders based on activity scores. It enhances social engagement by fostering friendly competition and providing social proof through transparent ranking systems.

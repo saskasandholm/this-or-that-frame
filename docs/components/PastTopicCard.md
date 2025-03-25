@@ -1,5 +1,8 @@
 # PastTopicCard Component
 
+*Last Updated: March 25, 2025*
+
+
 The `PastTopicCard` component displays past voting topics with their results, highlighting the winning option and showing vote distribution.
 
 ## Table of Contents

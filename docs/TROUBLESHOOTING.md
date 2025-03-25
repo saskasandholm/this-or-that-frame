@@ -1,5 +1,8 @@
 # Troubleshooting Guide
 
+*Last Updated: March 25, 2025*
+
+
 This guide contains solutions for common issues you might encounter while working with our tech stack: Tailwind CSS v4, shadcn/ui, React 19, and Next.js 15.2.
 
 ## Table of Contents
