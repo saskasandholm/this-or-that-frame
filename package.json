@@ -19,7 +19,7 @@
     "postinstall": "prisma generate",
     "verify-env": "node scripts/verify-env.js",
     "clean": "rm -rf .next",
-    "prepare": "husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
+    "prepare": "husky install",
     "add-topics": "node scripts/add-sample-topics.js",
     "admin:migrate": "node prisma/migrations/migrate-admin-schema.js",
     "admin:init": "node scripts/init-admin.js",
