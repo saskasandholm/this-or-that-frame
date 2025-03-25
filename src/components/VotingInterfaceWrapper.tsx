@@ -54,6 +54,23 @@ const VotingInterfaceWrapper: React.FC<TopicViewProps> = ({
   onTryAgain,
   error,
 }) => {
+  // Log props for debugging
+  console.log('[VotingInterfaceWrapper] Props:', {
+    topicId,
+    hasVoted,
+    userVote,
+    isLoading,
+    resultsAvailable: !!results,
+    showDidYouKnow,
+    showDirectChallenge
+  });
+
+  // Wrap onVote to add debugging
+  const handleVote = (option: 'A' | 'B') => {
+    console.log(`[VotingInterfaceWrapper] Voting for option ${option}`);
+    onVote(option);
+  };
+
   // Handle error state
   if (error) {
     return (
@@ -111,7 +128,7 @@ const VotingInterfaceWrapper: React.FC<TopicViewProps> = ({
     <div className="space-y-6">
       <VotingInterface
         topic={topic}
-        onVote={onVote}
+        onVote={handleVote}
         hasVoted={hasVoted}
         selectedOption={userVote as 'A' | 'B' | undefined}
         isLoading={isLoading}

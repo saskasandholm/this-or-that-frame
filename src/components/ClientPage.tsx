@@ -30,6 +30,7 @@ import PastTopicCard from './PastTopicCard';
 import Image from 'next/image';
 import { topicApi, VoteResult } from '@/services/api';
 import { SignInButton } from '@/components/SignInButton';
+import { useProfile } from '@farcaster/auth-kit';
 
 export interface PageDataProps {
   topicTitle: string;
@@ -236,7 +237,18 @@ const ClientPage = ({
   const [loading, setLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState('Loading topics...');
   const [activeTab, setActiveTab] = useState('daily');
-  const [showLoginPrompt, setShowLoginPrompt] = useState(!!loginRequired);
+  const { isAuthenticated } = useProfile();
+  
+  // Initialize login prompt - don't show if already authenticated
+  const [showLoginPrompt, setShowLoginPrompt] = useState(!!loginRequired && !isAuthenticated);
+
+  // Listen for authentication state changes to hide login prompt when authenticated
+  useEffect(() => {
+    if (isAuthenticated && showLoginPrompt) {
+      console.log('[ClientPage] User authenticated, hiding login prompt');
+      setShowLoginPrompt(false);
+    }
+  }, [isAuthenticated, showLoginPrompt]);
 
   // Replace multiple useState calls with useReducer
   const [votingState, dispatch] = useReducer(votingReducer, {
@@ -296,9 +308,18 @@ const ClientPage = ({
         cookie.trim().startsWith('farcaster_auth_none=')
       );
       
-      if (hasAuthCookie && showFirstTimeExperience) {
-        console.log('[ClientPage] Auth detected, hiding FTUE');
-        setShowFirstTimeExperience(false);
+      if (hasAuthCookie) {
+        // Hide first time experience if authenticated
+        if (showFirstTimeExperience) {
+          console.log('[ClientPage] Auth detected, hiding FTUE');
+          setShowFirstTimeExperience(false);
+        }
+        
+        // Also hide login prompt if visible
+        if (showLoginPrompt) {
+          console.log('[ClientPage] Auth detected, hiding login prompt');
+          setShowLoginPrompt(false);
+        }
       }
     };
     
@@ -321,7 +342,7 @@ const ClientPage = ({
       clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [showFirstTimeExperience]);
+  }, [showFirstTimeExperience, showLoginPrompt]);
 
   // Use provided trending topics if available, otherwise use fetched ones
   const displayTrendingTopics = providedTrendingTopics || trendingTopics;
@@ -374,11 +395,30 @@ const ClientPage = ({
     async (choice: 'A' | 'B') => {
       // Prevent voting if already in progress
       if (votingState.loadingResults) return;
+      
+      // Prevent voting if already voted on this topic
+      if (votingState.votedOnCurrentTopic) {
+        console.log('[ClientPage] Already voted on this topic. Showing results.');
+        return;
+      }
+
+      // Check if user is authenticated - if not, prompt to sign in
+      // Only for web interface votes, not for frame-based votes
+      const isFrameContext = window.location.ancestorOrigins?.length > 0 &&
+        /warpcast|farcaster/i.test(window.location.ancestorOrigins[0]);
+      
+      if (!isFrameContext && !isAuthenticated) {
+        console.log('[ClientPage] User not authenticated, showing login prompt');
+        setShowLoginPrompt(true);
+        return;
+      }
 
       // Update state to indicate voting in progress
       dispatch({ type: 'VOTE_START', choice });
 
       try {
+        console.log(`[ClientPage] Submitting vote: ${choice} for topic: ${currentTopicId}`);
+        
         // Simulate API call with timeout
         await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -409,6 +449,8 @@ const ClientPage = ({
         simulatedResult.breakdown.percentB = Math.round(
           (simulatedResult.breakdown.B / simulatedResult.breakdown.totalVotes) * 100
         );
+
+        console.log('[ClientPage] Vote successful, updating UI with results', simulatedResult);
 
         // Update state with results
         dispatch({
@@ -459,7 +501,7 @@ const ClientPage = ({
         }, 5000);
       }
     },
-    [currentTopicId, votingState.loadingResults, dispatch]
+    [currentTopicId, votingState.loadingResults, votingState.votedOnCurrentTopic, isAuthenticated, setShowLoginPrompt]
   );
 
   const handleCompleteFirstTimeExperience = useCallback(() => {
@@ -579,7 +621,14 @@ const ClientPage = ({
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Or{' '}
-                  <Button variant="link" className="p-0" onClick={() => setShowLoginPrompt(false)}>
+                  <Button 
+                    variant="link" 
+                    className="p-0" 
+                    onClick={() => {
+                      console.log('[ClientPage] Continuing as guest');
+                      setShowLoginPrompt(false);
+                    }}
+                  >
                     continue as guest
                   </Button>
                 </p>

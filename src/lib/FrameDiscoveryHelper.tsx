@@ -127,18 +127,35 @@ export function useFrameDiscovery(): FrameDiscoveryState {
     try {
       console.debug('Attempting to save frame...');
 
-      // Call the addFrame SDK method
-      const result = await sdk.actions.addFrame();
-
-      // Check result type to handle different SDK versions
-      if (typeof result === 'boolean') {
-        return result;
-      } else if (result && typeof result === 'object' && 'success' in result) {
-        return Boolean(result.success);
+      // Call the addFrame SDK method based on the official Farcaster Frame SDK v2 spec
+      const response = await sdk.actions.addFrame();
+      console.debug('addFrame response:', response);
+      
+      // Handle different response formats based on SDK version
+      
+      // New format from v2 SDK spec
+      if (response && typeof response === 'object') {
+        // Format documented at: https://docs.farcaster.xyz/developers/frames/v2/spec#feature-add-frame
+        if ('added' in response) {
+          // v2 format with { added: boolean }
+          return response.added === true;
+        } 
+        else if ('type' in response && response.type === 'success') {
+          // Some SDK versions return { type: 'success', notificationDetails?: {...} }
+          return true;
+        }
+        else if ('success' in response) {
+          // Legacy format with success property
+          return Boolean(response.success);
+        }
+      }
+      // Legacy/boolean format
+      else if (typeof response === 'boolean') {
+        return response;
       }
 
       // If unknown result format, log and return false
-      console.warn('Unexpected result from sdk.actions.addFrame():', result);
+      console.warn('Unexpected result from sdk.actions.addFrame():', response);
       return false;
     } catch (error) {
       console.error('Error saving frame:', error);

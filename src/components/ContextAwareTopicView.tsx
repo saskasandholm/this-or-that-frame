@@ -14,6 +14,7 @@ import DidYouKnow from './DidYouKnow';
 import DirectChallenge from './DirectChallenge';
 import FriendsVotedContext from './FriendsVotedContext';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { Check } from 'lucide-react';
 
 // Add the correct type from FrameDiscoveryHelper
 interface FrameDiscoveryState {
@@ -599,12 +600,12 @@ const StandardTopicView: React.FC<StandardTopicViewProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-6">
-      <h2 className="text-2xl font-bold text-center mb-6">{topicTitle}</h2>
+    <div className="w-full max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">{topicTitle}</h2>
 
       {userVote !== null && results !== undefined ? (
         <div className="mb-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <ResultOption
               option={optionA}
               image={imageA}
@@ -672,7 +673,7 @@ const StandardTopicView: React.FC<StandardTopicViewProps> = ({
         </div>
       ) : (
         <div className="mb-6">
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6">
             <VoteOption
               option={optionA}
               image={imageA}
@@ -718,7 +719,7 @@ const VoteOption: React.FC<VoteOptionProps> = ({
           src={image}
           alt={option}
           fill
-          sizes="(max-width: 768px) 100vw, 300px"
+          sizes="(max-width: 768px) 50vw, 300px"
           priority
           className={`object-cover rounded-lg ${
             highlight ? 'ring-4 ring-purple-500 ring-opacity-75' : ''
@@ -726,7 +727,7 @@ const VoteOption: React.FC<VoteOptionProps> = ({
           style={{ objectFit: 'cover' }}
         />
       </div>
-      <span className="font-medium text-center">{option}</span>
+      <span className="font-medium text-center text-sm sm:text-base">{option}</span>
     </motion.button>
   );
 };
@@ -743,28 +744,35 @@ const ResultOption: React.FC<ResultOptionProps> = ({
   option,
   image = '/images/placeholder-a.png',
   percentage,
-  isSelected,
+  isSelected = false,
 }) => {
   return (
-    <div className={`flex flex-col items-center ${isSelected ? 'scale-105' : ''}`}>
-      <div className="relative w-full pb-[100%] mb-2">
+    <div className={`relative rounded-lg overflow-hidden p-1 ${isSelected ? 'bg-gradient-to-r from-green-500/30 to-blue-500/30 dark:from-green-800/30 dark:to-blue-800/30' : ''}`}>
+      <div className="relative pb-[100%] bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
         <Image
           src={image}
           alt={option}
           fill
-          sizes="(max-width: 768px) 100vw, 300px"
-          className={`object-cover rounded-lg ${
-            isSelected ? 'ring-4 ring-green-500 ring-opacity-75' : 'opacity-70'
-          }`}
-          style={{ objectFit: 'cover' }}
+          sizes="(max-width: 768px) 50vw, 300px"
+          priority
+          className="object-cover opacity-90"
         />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl font-bold text-white drop-shadow-lg">
-            {Math.round(percentage)}%
-          </span>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col items-center justify-end p-2 sm:p-3">
+          <span className="text-white text-sm sm:text-base font-medium mb-1">{option}</span>
+          <div className="bg-white/30 w-full h-1.5 rounded-full mb-1">
+            <div
+              className="bg-white h-full rounded-full"
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+          <span className="text-white text-xs sm:text-sm font-medium">{percentage}%</span>
+          {isSelected && (
+            <div className="absolute top-2 right-2 bg-green-500 rounded-full size-5 sm:size-6 flex items-center justify-center">
+              <Check className="text-white size-3 sm:size-4" />
+            </div>
+          )}
         </div>
       </div>
-      <span className={`font-medium text-center ${isSelected ? 'font-bold' : ''}`}>{option}</span>
     </div>
   );
 };

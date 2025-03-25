@@ -61,10 +61,20 @@ export default function NavigationBar() {
 
   // Auth profile dropdown
   const AuthMenu = () => {
+    const { profile } = useProfile();
+    
+    // Log profile details for debugging
+    console.log('[NavigationBar:AuthMenu] Profile data:', {
+      exists: !!profile,
+      username: profile?.username,
+      displayName: profile?.displayName,
+      hasPfp: !!profile?.pfpUrl
+    });
+    
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="ml-2">
+          <Button variant="ghost" size="sm" className="ml-2 p-1 sm:p-2 h-auto">
             <UserProfile showDetails={false} />
           </Button>
         </DropdownMenuTrigger>
@@ -82,13 +92,20 @@ export default function NavigationBar() {
             <DropdownMenuItem>Auth Test Page</DropdownMenuItem>
           </Link>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <SignOutButton />
+          <DropdownMenuItem>
+            <div className="w-full">
+              <SignOutButton className="w-full text-left flex items-center" />
+            </div>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     );
   };
+
+  // Use a useEffect to monitor auth state changes
+  useEffect(() => {
+    console.log('[NavigationBar] Auth state changed:', { isAuthenticated });
+  }, [isAuthenticated]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -102,7 +119,7 @@ export default function NavigationBar() {
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center justify-center space-x-1 flex-1">
             <Link href="/">
               <Button variant="ghost" size="sm" className="flex items-center">
                 <Home className="mr-2 h-4 w-4" />
@@ -162,25 +179,27 @@ export default function NavigationBar() {
                 Docs
               </Button>
             </Link>
-
-            <div className="ml-2">
-              {isAuthenticated ? <AuthMenu /> : <SignInButton />}
-            </div>
           </nav>
 
-          <div className="flex md:hidden items-center">
-            {isAuthenticated && (
-              <AuthMenu />
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
-              className="ml-2"
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+          <div className="flex items-center">
+            <div className="hidden md:block">
+              {isAuthenticated ? <AuthMenu /> : <SignInButton />}
+            </div>
+            
+            <div className="flex md:hidden items-center">
+              {isAuthenticated ? 
+                <AuthMenu /> : 
+                <SignInButton className="mr-2" compact={true} />
+              }
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleMenu}
+                aria-label="Toggle menu"
+              >
+                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

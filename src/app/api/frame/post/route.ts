@@ -17,11 +17,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const topicIdStr = url.searchParams.get('topicId');
     const topicId = validateTopicId(topicIdStr);
 
-    // Validate incoming frame message
-    const { buttonIndex, fid } = await validateFrameMessage(req);
+    // Validate incoming frame message - extract trusted data from the Frame signature
+    // This verifies the message is from a valid Farcaster user
+    const { buttonIndex, fid, inputText } = await validateFrameMessage(req);
 
     console.log(
-      `Processing frame post with buttonIndex: ${buttonIndex}, fid: ${fid}, topicId: ${topicId}`
+      `Processing frame post with buttonIndex: ${buttonIndex}, fid: ${fid}, topicId: ${topicId}, inputText: ${inputText || 'none'}`
     );
 
     // Get the topic
@@ -107,7 +108,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Use a transaction for data consistency
     const topicIdInt = parseInt(topicId);
     await prisma.$transaction(async tx => {
-      // Update vote count on topic
+      // Always update vote count on topic whether the user is authenticated or not
+      // This allows voting directly from the frame without login
       if (isOptionA) {
         await tx.topic.update({
           where: { id: topicIdInt },
@@ -164,6 +166,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
       }
     });
+
+    // Get updated vote counts for more accurate results
+    const updatedTopic = await prisma.topic.findUnique({
+      where: { id: topicIdInt },
+      select: {
+        votesA: true,
+        votesB: true,
+      },
+    });
+
+    const totalVotes = (updatedTopic?.votesA || 0) + (updatedTopic?.votesB || 0);
+    const percentA = totalVotes ? Math.round((updatedTopic?.votesA || 0) / totalVotes * 100) : 0;
+    const percentB = totalVotes ? Math.round((updatedTopic?.votesB || 0) / totalVotes * 100) : 0;
 
     // Return the vote response
     return NextResponse.json({

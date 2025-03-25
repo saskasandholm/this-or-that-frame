@@ -1,6 +1,7 @@
 'use client';
 
 import { LogOut } from 'lucide-react';
+import { useCallback } from 'react';
 
 interface SignOutButtonProps {
   children?: React.ReactNode;
@@ -10,9 +11,11 @@ interface SignOutButtonProps {
 
 export function SignOutButton({ children, className, onClick }: SignOutButtonProps) {
   
-  const handleSignOut = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    // Prevent default button behavior
-    event.preventDefault();
+  const handleSignOut = useCallback((event?: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent default button behavior if event exists
+    if (event) {
+      event.preventDefault();
+    }
     
     try {
       console.log('[SignOutButton] Signing out...');
@@ -26,6 +29,9 @@ export function SignOutButton({ children, className, onClick }: SignOutButtonPro
         
         // Remove any potential cookies as well (belt and suspenders approach)
         document.cookie = 'fc:session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'farcaster_auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'farcaster_auth_lax=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'farcaster_auth_none=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       }
       
       // Call the optional callback
@@ -35,12 +41,12 @@ export function SignOutButton({ children, className, onClick }: SignOutButtonPro
       
       // Brief delay before reload to ensure everything is cleared
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = '/';
       }, 100);
     } catch (error) {
       console.error('[SignOutButton] Error signing out:', error);
     }
-  };
+  }, [onClick]);
   
   return (
     <button 

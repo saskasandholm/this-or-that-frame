@@ -122,49 +122,51 @@ export default async function HomePage({ searchParams }: Props) {
   ];
 
   return (
-    <>
-      {/* Frame metadata - hidden from regular view but used by Farcaster */}
-      <meta property="fc:frame" content="vNext" />
-      <meta property="fc:frame:image" content={frameImageUrl} />
-      <meta property="fc:frame:post_url" content={framePostUrl} />
-      <meta property="fc:frame:button:1" content="Vote Option A" />
-      <meta property="fc:frame:button:2" content="Vote Option B" />
-      <meta property="fc:frame:button:3" content="View Results" />
+    <div className="w-full">
+      <main className="min-h-screen pt-20">
+        {/* Frame metadata - hidden from regular view but used by Farcaster */}
+        <meta property="fc:frame" content="vNext" />
+        <meta property="fc:frame:image" content={frameImageUrl} />
+        <meta property="fc:frame:post_url" content={framePostUrl} />
+        <meta property="fc:frame:button:1" content="Vote Option A" />
+        <meta property="fc:frame:button:2" content="Vote Option B" />
+        <meta property="fc:frame:button:3" content="View Results" />
 
-      <ClientPage
-        topicTitle={activeTopic?.name || 'Bitcoin or Ethereum?'}
-        topicOptions={
-          activeTopic
-            ? {
-                optionA: activeTopic.optionA,
-                optionB: activeTopic.optionB,
-                imageA: defaultImageA,
-                imageB: defaultImageB,
-              }
-            : {
-                optionA: 'Bitcoin',
-                optionB: 'Ethereum',
-                imageA: cryptoImages.bitcoin,
-                imageB: cryptoImages.ethereum,
-              }
-        }
-        currentTopicId={activeTopic?.id?.toString() || 'sample-1'}
-        frameImageUrl={frameImageUrl}
-        framePostUrl={framePostUrl}
-        frameButtonText="Share on Farcaster"
-        welcomeMessage="Welcome to This or That!"
-        appDescription="Join thousands of users in the Farcaster community voting on daily topics. Express your opinion, discover what others think, and challenge your friends."
-        howItWorks={[
-          'Vote on daily topics',
-          'See real-time community results',
-          'Share topics with friends',
-          'Earn streaks by voting daily',
-        ]}
-        trendingTopics={trendingTopics}
-        didYouKnowFacts={didYouKnowFacts}
-        showFirstTimeExperience={true}
-        loginRequired={loginRequired}
-      />
-    </>
+        <ClientPage
+          topicTitle={activeTopic?.name || 'Bitcoin or Ethereum?'}
+          topicOptions={
+            activeTopic
+              ? {
+                  optionA: activeTopic.optionA,
+                  optionB: activeTopic.optionB,
+                  imageA: defaultImageA,
+                  imageB: defaultImageB,
+                }
+              : {
+                  optionA: 'Bitcoin',
+                  optionB: 'Ethereum',
+                  imageA: cryptoImages.bitcoin,
+                  imageB: cryptoImages.ethereum,
+                }
+          }
+          currentTopicId={activeTopic?.id?.toString() || 'sample-1'}
+          frameImageUrl={frameImageUrl}
+          framePostUrl={framePostUrl}
+          frameButtonText="Share on Farcaster"
+          welcomeMessage="Welcome to This or That!"
+          appDescription="Join thousands of users in the Farcaster community voting on daily topics. Express your opinion, discover what others think, and challenge your friends."
+          howItWorks={[
+            'Vote on daily topics',
+            'See real-time community results',
+            'Share topics with friends',
+            'Earn streaks by voting daily',
+          ]}
+          trendingTopics={trendingTopics}
+          didYouKnowFacts={didYouKnowFacts}
+          showFirstTimeExperience={true}
+          loginRequired={loginRequired}
+        />
+      </main>
+    </div>
   );
 }

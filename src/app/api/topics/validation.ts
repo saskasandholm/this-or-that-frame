@@ -97,6 +97,7 @@ export async function validateFrameMessage(req: NextRequest): Promise<{
     fid: number;
     hash: string;
   };
+  inputText?: string;
 }> {
   let body;
 
@@ -138,7 +139,13 @@ export async function validateFrameMessage(req: NextRequest): Promise<{
     };
   }
 
-  return { buttonIndex, fid, castId };
+  // Get inputText if present
+  let inputText: string | undefined;
+  if (body.untrustedData.inputText !== undefined) {
+    inputText = String(body.untrustedData.inputText);
+  }
+
+  return { buttonIndex, fid, castId, inputText };
 }
 
 /**

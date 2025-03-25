@@ -90,9 +90,9 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
 
   return (
     <Card className="w-full max-w-3xl mx-auto overflow-hidden shadow-xl border-2 border-border/30 backdrop-blur-md bg-background/70">
-      <div className="p-5">
+      <div className="p-3 sm:p-5">
         <motion.h2
-          className="text-center text-xl sm:text-2xl font-bold mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent"
+          className="text-center text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -100,7 +100,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
           {topic.title}
         </motion.h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 md:gap-6">
           <AnimatePresence mode="wait">
             <motion.div
               className={cn(
@@ -133,17 +133,17 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
                   </motion.div>
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-6xl bg-gradient-to-br from-primary-800/20 to-primary-700/40">
+                  <div className="absolute inset-0 flex items-center justify-center text-4xl sm:text-6xl bg-gradient-to-br from-primary-800/20 to-primary-700/40">
                     ☕️
                   </div>
                 )}
               </div>
-              <div className="p-3 text-center relative z-10">
+              <div className="p-2 sm:p-3 text-center relative z-10">
                 {shouldShowTooltip(topic.optionA) ? (
                   <TooltipProvider delayDuration={300}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <h3 className="text-lg font-semibold inline-flex items-center">
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold inline-flex items-center">
                           {topic.optionA}
                           <span className="ml-1 text-xs text-muted-foreground">ⓘ</span>
                         </h3>
@@ -154,17 +154,17 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <h3 className="text-lg font-semibold">{topic.optionA}</h3>
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold">{topic.optionA}</h3>
                 )}
                 {showResults && (
                   <motion.div
-                    className="mt-2"
+                    className="mt-1 sm:mt-2"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     transition={{ duration: 0.3 }}
                   >
                     <Progress value={percentA} className="h-2 mb-1" />
-                    <p className="text-sm font-medium">
+                    <p className="text-xs sm:text-sm font-medium">
                       {percentA}% ({topic.votesA} votes)
                     </p>
                   </motion.div>
@@ -177,7 +177,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 >
                   <Button
                     variant="default"
-                    size="lg"
+                    size="sm"
                     className="font-bold shadow-xl transition-all duration-300 hover:scale-110"
                     onClick={() => onVote('A')}
                   >
@@ -186,7 +186,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 </motion.div>
               )}
               {hasVoted && selectedOption === 'A' && (
-                <div className="absolute top-3 right-3 size-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3 size-6 sm:size-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -231,17 +231,17 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
                   </motion.div>
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-6xl bg-gradient-to-br from-secondary-800/20 to-secondary-700/40">
+                  <div className="absolute inset-0 flex items-center justify-center text-4xl sm:text-6xl bg-gradient-to-br from-secondary-800/20 to-secondary-700/40">
                     🍵
                   </div>
                 )}
               </div>
-              <div className="p-3 text-center relative z-10">
+              <div className="p-2 sm:p-3 text-center relative z-10">
                 {shouldShowTooltip(topic.optionB) ? (
                   <TooltipProvider delayDuration={300}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <h3 className="text-lg font-semibold inline-flex items-center">
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold inline-flex items-center">
                           {topic.optionB}
                           <span className="ml-1 text-xs text-muted-foreground">ⓘ</span>
                         </h3>
@@ -252,17 +252,17 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <h3 className="text-lg font-semibold">{topic.optionB}</h3>
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold">{topic.optionB}</h3>
                 )}
                 {showResults && (
                   <motion.div
-                    className="mt-2"
+                    className="mt-1 sm:mt-2"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     transition={{ duration: 0.3 }}
                   >
                     <Progress value={percentB} className="h-2 mb-1" />
-                    <p className="text-sm font-medium">
+                    <p className="text-xs sm:text-sm font-medium">
                       {percentB}% ({topic.votesB} votes)
                     </p>
                   </motion.div>
@@ -275,7 +275,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 >
                   <Button
                     variant="default"
-                    size="lg"
+                    size="sm"
                     className="font-bold shadow-xl transition-all duration-300 hover:scale-110"
                     onClick={() => onVote('B')}
                   >
@@ -284,7 +284,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 </motion.div>
               )}
               {hasVoted && selectedOption === 'B' && (
-                <div className="absolute top-3 right-3 size-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3 size-6 sm:size-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -300,18 +300,18 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({
 
         {hasVoted && (
           <motion.div
-            className="mt-6 text-center"
+            className="mt-4 sm:mt-6 text-center"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <p className="text-sm text-muted-foreground mb-2">Thank you for voting!</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2">Thank you for voting!</p>
             <div className="flex justify-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowResults(!showResults)}
-                className="shadow-sm"
+                className="shadow-sm text-xs sm:text-sm"
               >
                 {showResults ? 'Hide Results' : 'Show Results'}
               </Button>
