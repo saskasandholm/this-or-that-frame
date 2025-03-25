@@ -7,8 +7,13 @@ import MessageSigner from '@/components/MessageSigner';
 import TokenBalance from '@/components/TokenBalance';
 import { AlertTriangle, Wallet } from 'lucide-react';
 import { truncateAddress } from '@/lib/utils';
+import WagmiProvider from '@/components/providers/WagmiProvider';
 
-export default function WalletDemoPage() {
+// Force dynamic rendering to avoid static generation errors with wagmi
+export const dynamic = 'force-dynamic';
+
+// Wrap the actual page content with WagmiProvider
+function WalletDemoContent() {
   const { address, isConnected, chainId } = useAccount();
 
   return (
@@ -17,6 +22,17 @@ export default function WalletDemoPage() {
       <p className="text-muted-foreground mb-8">
         This page demonstrates the integration with Farcaster Frame wallet functionality
       </p>
+
+      {/* Warning Banner for Demo Only */}
+      <div className="mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start">
+        <AlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+        <div>
+          <h3 className="font-medium text-red-600 dark:text-red-400">Demo Only</h3>
+          <p className="text-sm text-muted-foreground">
+            This wallet integration is for demonstration purposes only and is not officially supported in production.
+          </p>
+        </div>
+      </div>
 
       {/* Connection Status */}
       <div className="mb-8 p-4 bg-muted/50 rounded-lg">
@@ -84,5 +100,14 @@ export default function WalletDemoPage() {
         <MessageSigner />
       </div>
     </div>
+  );
+}
+
+// Export the page wrapped with WagmiProvider
+export default function WalletDemoPage() {
+  return (
+    <WagmiProvider>
+      <WalletDemoContent />
+    </WagmiProvider>
   );
 }
