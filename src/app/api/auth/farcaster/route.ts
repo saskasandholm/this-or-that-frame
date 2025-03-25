@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAppClient, viemConnector } from '@farcaster/auth-client';
 import { prisma } from '@/lib/prisma';
 import { trackError } from '@/lib/error-tracking';
-import type { VerifyResponse } from '@farcaster/auth-client';
+
+// Define the VerifyResponse type locally since it's not exported from auth-client
+type VerifyResponse = {
+  success: boolean;
+  fid: number;
+  userInfo?: {
+    username?: string;
+    displayName?: string;
+    pfp?: {
+      url?: string;
+    };
+  };
+};
 
 // Simplified cookie configuration
 const AUTH_COOKIE_CONFIG = {
