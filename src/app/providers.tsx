@@ -1,12 +1,14 @@
 'use client';
 
-import { AuthProvider } from '@/components/providers/AuthProvider';
+import dynamic from 'next/dynamic';
 
-// Providers component wraps the application with all necessary providers
+const WagmiProvider = dynamic(
+  () => import('@/components/providers/WagmiProvider'),
+  {
+    ssr: false,
+  }
+);
+
 export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
-  );
+  return <WagmiProvider>{children}</WagmiProvider>;
 }

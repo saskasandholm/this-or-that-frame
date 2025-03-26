@@ -16,28 +16,12 @@ const interBold = fetch(
 ).then((res) => res.arrayBuffer());
 
 /**
- * Generates an image for the frame based on the topic
+ * Generates a default image for the frame when no topics are available
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
-    console.log('Frame image request received');
+    console.log('Default frame image request received');
     
-    // Get the topic ID from the query string if available
-    const url = new URL(req.url);
-    const topicId = url.searchParams.get('topicId');
-    
-    // Fetch topic data from the API
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
-    const topicUrl = new URL('/api/topics/current', baseUrl);
-    if (topicId) {
-      topicUrl.searchParams.set('topicId', topicId);
-    }
-    
-    const response = await fetch(topicUrl);
-    const data = await response.json();
-    
-    const { title = 'This or That', optionA = 'Option A', optionB = 'Option B' } = data;
-
     // Load the font
     const fontData = await interBold;
     
@@ -51,7 +35,7 @@ export async function GET(req: NextRequest) {
             justifyContent: 'center',
             width: '100%',
             height: '100%',
-            background: 'linear-gradient(to bottom right, #4F46E5, #7C3AED)',
+            background: 'linear-gradient(to bottom right, #3B82F6, #10B981)',
             color: 'white',
             padding: '40px',
             textAlign: 'center',
@@ -63,13 +47,24 @@ export async function GET(req: NextRequest) {
             margin: '0 0 20px',
             fontWeight: 'bold',
             textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>{title}</h1>
+          }}>This or That</h1>
+          
+          <div style={{
+            fontSize: '48px',
+            padding: '40px',
+            background: 'rgba(255, 255, 255, 0.15)',
+            borderRadius: '15px',
+            marginBottom: '40px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+          }}>
+            Vote on Daily Topics!
+          </div>
           
           <div style={{
             display: 'flex',
             width: '100%',
             justifyContent: 'space-around',
-            marginTop: '40px',
             marginBottom: '40px',
           }}>
             <div style={{
@@ -78,27 +73,27 @@ export async function GET(req: NextRequest) {
               justifyContent: 'center',
               background: 'rgba(255, 255, 255, 0.15)',
               borderRadius: '15px',
-              padding: '30px',
-              width: '40%',
-              height: '150px',
+              padding: '20px',
+              width: '30%',
+              height: '100px',
               border: '2px solid rgba(255, 255, 255, 0.3)',
-              fontSize: '36px',
+              fontSize: '28px',
               fontWeight: 'bold',
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
               backdropFilter: 'blur(10px)',
             }}>
-              {optionA}
+              Bitcoin
             </div>
             
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '32px',
+              fontSize: '24px',
               fontWeight: 'bold',
               textShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-              VS
+              OR
             </div>
             
             <div style={{
@@ -107,16 +102,16 @@ export async function GET(req: NextRequest) {
               justifyContent: 'center',
               background: 'rgba(255, 255, 255, 0.15)',
               borderRadius: '15px',
-              padding: '30px',
-              width: '40%',
-              height: '150px',
+              padding: '20px',
+              width: '30%',
+              height: '100px',
               border: '2px solid rgba(255, 255, 255, 0.3)',
-              fontSize: '36px',
+              fontSize: '28px',
               fontWeight: 'bold',
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
               backdropFilter: 'blur(10px)',
             }}>
-              {optionB}
+              Ethereum
             </div>
           </div>
           
@@ -124,7 +119,7 @@ export async function GET(req: NextRequest) {
             fontSize: '24px', 
             opacity: '0.8',
             textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-          }}>Vote in the daily poll!</p>
+          }}>New topics every day!</p>
         </div>
       ),
       {
@@ -141,7 +136,7 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Error generating image:', error);
+    console.error('Error generating default image:', error);
     return new Response('Error generating image', { status: 500 });
   }
-}
+} 

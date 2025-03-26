@@ -14,20 +14,11 @@
  * Reference: https://docs.farcaster.xyz/developers/frames/v2/getting-started
  */
 
-import { FrameSDK } from '@farcaster/frame-sdk';
+// Import the types as a namespace to avoid conflicts
+import type * as FrameSDKTypes from '@farcaster/frame-sdk';
 
-// Extend the Window interface to include FrameSDK
-declare global {
-  interface Window {
-    FrameSDK?: FrameSDK;
-  }
-}
-
-/**
- * Private SDK instance - implements the singleton pattern
- * This prevents multiple instances of the SDK being created
- */
-let _sdk: FrameSDK | null = null;
+// Private SDK instance - we'll store the actual window.FrameSDK reference here
+let _sdk: any = null;
 
 /**
  * Safely checks if we're in a frame environment
@@ -37,7 +28,7 @@ export function isInFrameEnvironment(): boolean {
     // First check if we're in a browser environment
     if (typeof window === 'undefined') return false;
     
-    // Check if the FrameSDK is available
+    // Check if the FrameSDK is available on the window object
     return !!window.FrameSDK;
   } catch (error) {
     console.error('Error checking frame environment:', error);
@@ -56,45 +47,47 @@ export function isInFrameEnvironment(): boolean {
  * The SDK is exposed by the Farcaster client through the window object
  * when running within a frame context.
  * 
- * @returns {FrameSDK | null} The initialized SDK or null if initialization failed
+ * @returns The initialized SDK or null if initialization failed
  */
 export function initFrameSDK() {
   // Exit early if we're in a server environment
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {
+    console.log('Server environment detected, skipping SDK initialization');
+    return null;
+  }
   
   // Only initialize once (singleton pattern)
   if (!_sdk) {
     try {
-      // Safely check if we're in a Farcaster frame environment
-      if (isInFrameEnvironment()) {
+      // Check if we're in a Farcaster frame environment
+      if (window.FrameSDK) {
+        console.log('Farcaster Frame environment detected');
+        
         try {
-          // Assign the SDK instance with proper type checking
-          const frameSDK = window.FrameSDK;
-          if (!frameSDK) {
-            console.log('FrameSDK is undefined despite environment check');
-            return null;
-          }
-          
-          _sdk = frameSDK;
+          // Store the SDK reference
+          _sdk = window.FrameSDK;
           
           // Signal that the app is ready to receive user interactions
-          // This is a critical step - without this, the frame will not display
-          if (_sdk.actions?.ready) {
-            _sdk.actions.ready();
-            console.log('Farcaster Frame SDK initialized and ready');
+          if (_sdk.actions && typeof _sdk.actions.ready === 'function') {
+            console.log('Calling FrameSDK.actions.ready()');
+            _sdk.actions.ready()
+              .then(() => {
+                console.log('Frame ready signal sent successfully');
+              })
+              .catch((error: any) => {
+                console.error('Error sending ready signal:', error);
+              });
+          } else {
+            console.warn('FrameSDK.actions.ready is not available');
           }
         } catch (innerError) {
           console.error('Error during SDK initialization:', innerError);
-          return null;
         }
       } else {
-        // We're not in a Farcaster frame environment
-        console.log('Not in a Farcaster frame environment, SDK not available');
-        return null;
+        console.log('Not in a Farcaster frame environment (window.FrameSDK not available)');
       }
     } catch (error) {
       console.error('Failed to initialize Farcaster Frame SDK:', error);
-      return null;
     }
   }
   
@@ -102,10 +95,7 @@ export function initFrameSDK() {
 }
 
 // Initialize the SDK on module import
-const initializedSDK = initFrameSDK();
+const initializedSDK = typeof window !== 'undefined' ? initFrameSDK() : null;
 
 // Re-export the SDK for use throughout the app
-export const sdk = initializedSDK;
-
-// Re-export the SDK type for use throughout the app
-export type { FrameSDK }; 
+export const sdk = initializedSDK; 

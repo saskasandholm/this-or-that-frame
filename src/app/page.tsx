@@ -1,6 +1,7 @@
 import { Metadata, ResolvingMetadata } from 'next';
 import { getCurrentTopic } from '@/lib/db';
 import ClientPage from '@/components/ClientPage';
+import Demo from './components/Demo';
 
 export async function generateMetadata(_params: any, parent: ResolvingMetadata): Promise<Metadata> {
   const parentMetadata = await parent;
@@ -131,6 +132,8 @@ export default async function HomePage({ searchParams }: Props) {
         <meta property="fc:frame:button:1" content="Vote Option A" />
         <meta property="fc:frame:button:2" content="Vote Option B" />
         <meta property="fc:frame:button:3" content="View Results" />
+
+        <Demo />
 
         <ClientPage
           topicTitle={activeTopic?.name || 'Bitcoin or Ethereum?'}

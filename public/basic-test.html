@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Basic Frame v2 Test</title>
+  
+  <!-- Frame Meta Tags -->
+  <meta property="fc:frame" content="vNext">
+  <meta property="fc:frame:image" content="https://placehold.co/1200x630/000000/FFFFFF.png?text=Basic+Test">
+  <meta property="fc:frame:home_url" content="https://1bcfb18ffbcd.ngrok.app/basic-test.html">
+  <meta property="fc:frame:post_url" content="https://1bcfb18ffbcd.ngrok.app/api/warpcast-test">
+  <meta property="fc:frame:button:1" content="Click Me">
+</head>
+<body>
+  <div>Hello, Farcaster!</div>
+  
+  <script type="module">
+    import sdk from 'https://esm.run/@farcaster/frame-sdk';
+    
+    // Signal that our app is ready to display
+    window.addEventListener('load', () => {
+      const load = async () => {
+        sdk.actions.ready();
+      };
+      load();
+    });
+  </script>
+</body>
+</html> 

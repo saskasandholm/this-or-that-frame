@@ -89,6 +89,7 @@
     "lint-staged": "^15.5.0",
     "lucide-react": "^0.482.0",
     "markdownlint-cli": "^0.44.0",
+    "ngrok": "^5.0.0-beta.2",
     "npm-check-updates": "^17.1.16",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",

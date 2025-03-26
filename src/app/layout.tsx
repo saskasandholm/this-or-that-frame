@@ -16,8 +16,8 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: 'This or That - Farcaster Frame',
-  description: 'A daily choice game that reveals what the Farcaster community really thinks',
+  title: 'This or That - Frame Demo',
+  description: 'A Farcaster Frames v2 demo app',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
 };
 
@@ -40,9 +40,9 @@ function ErrorHandler() {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body

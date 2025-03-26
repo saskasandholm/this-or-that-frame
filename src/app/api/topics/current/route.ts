@@ -1,44 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(_request: NextRequest) {
+// Use Node.js runtime for Prisma
+export const runtime = 'nodejs';
+
+export async function GET(req: Request) {
   try {
-    // Get the current date
-    const now = new Date();
-
-    // Find the active topic for today
-    const currentTopic = await prisma.topic.findFirst({
-      where: {
-        isActive: true,
-        startDate: {
-          lte: now,
+    const url = new URL(req.url);
+    const topicId = url.searchParams.get('topicId');
+    
+    let topic;
+    
+    if (topicId) {
+      topic = await prisma.topic.findUnique({
+        where: { id: parseInt(topicId) },
+      });
+    } else {
+      topic = await prisma.topic.findFirst({
+        where: {
+          isActive: true,
+          startDate: { lte: new Date() },
+          endDate: { gte: new Date() },
         },
-        OR: [
-          {
-            endDate: null,
-          },
-          {
-            endDate: {
-              gte: now,
-            },
-          },
-        ],
-      },
-      include: {
-        category: true,
-      },
-      orderBy: {
-        startDate: 'desc',
-      },
-    });
-
-    if (!currentTopic) {
-      return NextResponse.json({ message: 'No active topic found' }, { status: 404 });
+        orderBy: { startDate: 'desc' },
+      });
     }
-
-    return NextResponse.json(currentTopic);
+    
+    if (!topic) {
+      return NextResponse.json({
+        title: 'This or That',
+        optionA: 'Option A',
+        optionB: 'Option B',
+      });
+    }
+    
+    return NextResponse.json({
+      title: topic.name,
+      optionA: topic.optionA,
+      optionB: topic.optionB,
+    });
   } catch (error) {
-    console.error('Error fetching current topic:', error);
-    return NextResponse.json({ error: 'Failed to fetch current topic' }, { status: 500 });
+    console.error('Error fetching topic:', error);
+    return NextResponse.json({ error: 'Error fetching topic' }, { status: 500 });
   }
 }

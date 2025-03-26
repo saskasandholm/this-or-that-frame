@@ -1,225 +1,183 @@
-import { getAddress, numberToHex } from 'viem';
-import { createConnector } from 'wagmi';
-import { sdk, isInFrameEnvironment } from '@/lib/frame-sdk';
-import { Chain } from 'wagmi/chains';
-
-// Define a simple chain interface that matches what we need
-type SimpleChain = {
-  id: number;
-  name?: string;
-};
+import sdk from '@farcaster/frame-sdk';
+import { SwitchChainError, fromHex, getAddress, numberToHex } from 'viem';
+import { ChainNotConfiguredError, createConnector } from 'wagmi';
 
 /**
- * Creates a connector for interacting with Ethereum wallets through the Farcaster Frame
+ * Farcaster Frame Wallet Connector
  * 
- * This connector uses the Frame SDK to access the wallet provider exposed by Farcaster.
- * It handles all Ethereum wallet interactions within the Frame environment.
- * 
- * @returns A Wagmi connector for Farcaster Frames
+ * This connector allows Next.js applications to interact with the Farcaster wallet
+ * exposed through the Frame v2 SDK. It integrates with the Wagmi library to provide
+ * a seamless wallet connection experience within Farcaster Frames.
+ */
+
+// Valid test address for mock environment - don't change this address
+const MOCK_ADDRESS = '0x71C7656EC7ab88b098defB751B7401B5f6d8976F';
+
+// Define the type for the frameConnector
+frameConnector.type = 'frameConnector' as const;
+
+/**
+ * Creates a Wagmi connector for the Farcaster Frame wallet.
+ * This allows integration with Wagmi hooks for wallet interactions.
  */
 export function frameConnector() {
-  let connected = false;
+  let connected = true;
 
-  // Create a mock provider for fallback when not in frame environment
-  const mockProvider = {
-    request: async () => Promise.resolve(null),
-    on: () => {},
-    removeListener: () => {},
-  };
-
-  return createConnector((config) => ({
+  return createConnector<typeof sdk.wallet.ethProvider>((config) => ({
     id: 'farcaster',
-    name: 'Farcaster',
-    type: 'farcaster',
-    isAuthorized: async () => {
-      try {
-        // Check if SDK and wallet provider are available
-        if (!isInFrameEnvironment() || !sdk?.wallet?.ethProvider) {
-          console.log('Frame SDK or wallet provider not available for authorization');
-          return false;
-        }
+    name: 'Farcaster Wallet',
+    type: frameConnector.type,
 
-        const accounts = await Promise.resolve(sdk.wallet.ethProvider.request({
-          method: 'eth_accounts',
-        })).catch(error => {
-          console.error('Error in isAuthorized:', error);
-          return null;
-        });
-        
-        return !!accounts?.length;
-      } catch (e) {
-        console.error('Error checking authorization status:', e);
+    async setup() {
+      this.connect({ chainId: config.chains[0].id });
+    },
+    async connect({ chainId } = {}) {
+      const provider = await this.getProvider();
+      const accounts = await provider.request({
+        method: 'eth_requestAccounts',
+      });
+
+      let currentChainId = await this.getChainId();
+      if (chainId && currentChainId !== chainId) {
+        const chain = await this.switchChain!({ chainId });
+        currentChainId = chain.id;
+      }
+
+      connected = true;
+
+      return {
+        accounts: accounts.map((x) => getAddress(x)),
+        chainId: currentChainId,
+      };
+    },
+    async disconnect() {
+      connected = false;
+    },
+    async getAccounts() {
+      if (!connected) throw new Error('Not connected');
+      const provider = await this.getProvider();
+      const accounts = await provider.request({
+        method: 'eth_requestAccounts',
+      });
+      return accounts.map((x) => getAddress(x));
+    },
+    async getChainId() {
+      const provider = await this.getProvider();
+      const hexChainId = await provider.request({ method: 'eth_chainId' });
+      return fromHex(hexChainId, 'number');
+    },
+    async isAuthorized() {
+      if (!connected) {
         return false;
       }
-    },
-    connect: async () => {
-      // Check if SDK and wallet provider are available
-      if (!isInFrameEnvironment() || !sdk?.wallet?.ethProvider) {
-        console.error('Frame SDK wallet not available for connection');
-        throw new Error('Frame SDK wallet not available. Please make sure you are in a Farcaster Frame environment.');
-      }
 
-      try {
-        const accounts = await Promise.resolve(sdk.wallet.ethProvider.request({
-          method: 'eth_requestAccounts',
-        })).catch(error => {
-          console.error('Error in connect (eth_requestAccounts):', error);
-          throw new Error('Failed to request accounts from wallet');
-        });
+      const accounts = await this.getAccounts();
+      return !!accounts.length;
+    },
+    async switchChain({ chainId }) {
+      const provider = await this.getProvider();
+      const chain = config.chains.find((x) => x.id === chainId);
+      if (!chain) throw new SwitchChainError(new ChainNotConfiguredError());
 
-        if (!accounts?.length) {
-          throw new Error('No accounts returned from wallet');
-        }
-
-        connected = true;
-
-        const chainIdHex = await Promise.resolve(sdk.wallet.ethProvider.request({
-          method: 'eth_chainId',
-        })).catch(error => {
-          console.error('Error in connect (eth_chainId):', error);
-          // Default to Base chain if request fails
-          return '0x2105'; // Base chain ID in hex
-        });
-        
-        return {
-          accounts: accounts.map((x) => getAddress(x)),
-          chainId: Number(chainIdHex)
-        };
-      } catch (error) {
-        console.error('Error connecting to wallet:', error);
-        throw new Error('Failed to connect to wallet: ' + (error instanceof Error ? error.message : 'Unknown error'));
-      }
-    },
-    disconnect: async () => {
-      try {
-        connected = false;
-        return Promise.resolve();
-      } catch (error) {
-        console.error('Error in disconnect:', error);
-        // Always resolve - never reject on disconnect
-        return Promise.resolve();
-      }
-    },
-    getAccounts: async () => {
-      if (!isInFrameEnvironment() || !sdk?.wallet?.ethProvider) {
-        console.error('Frame SDK wallet not available for getting accounts');
-        return [];
-      }
-      
-      try {
-        const accounts = await Promise.resolve(sdk.wallet.ethProvider.request({
-          method: 'eth_accounts',
-        })).catch(error => {
-          console.error('Error in getAccounts:', error);
-          return [];
-        });
-        
-        return accounts?.map((x) => getAddress(x)) || [];
-      } catch (error) {
-        console.error('Error getting accounts:', error);
-        return [];
-      }
-    },
-    getChainId: async () => {
-      if (!isInFrameEnvironment() || !sdk?.wallet?.ethProvider) {
-        console.error('Frame SDK wallet not available for getting chain ID');
-        // Return a fallback chain ID instead of throwing
-        return config.chains[0]?.id || 8453; // Base chain ID as fallback
-      }
-      
-      try {
-        const chainIdHex = await Promise.resolve(sdk.wallet.ethProvider.request({
-          method: 'eth_chainId',
-        })).catch(error => {
-          console.error('Error in getChainId:', error);
-          return null;
-        });
-        
-        if (!chainIdHex) {
-          return config.chains[0]?.id || 8453; // Base chain ID as fallback
-        }
-        
-        return Number(chainIdHex);
-      } catch (error) {
-        console.error('Error getting chain ID:', error);
-        // Return a fallback chain ID instead of throwing
-        return config.chains[0]?.id || 8453; // Base chain ID as fallback
-      }
-    },
-    switchChain: async ({ chainId }) => {
-      if (!isInFrameEnvironment() || !sdk?.wallet?.ethProvider) {
-        console.error('Frame SDK wallet not available for switching chain');
-        // Find matching chain from config or throw if none found
-        const chainFromConfig = config.chains.find(c => c.id === chainId);
-        if (!chainFromConfig) {
-          throw new Error(`Chain with ID ${chainId} not configured`);
-        }
-        return chainFromConfig;
-      }
-      
-      try {
-        await Promise.resolve(sdk.wallet.ethProvider.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: chainIdToHex(chainId) }],
-        })).catch(error => {
-          console.error('Error in switchChain:', error);
-          throw error;
-        });
-        
-        // Find matching chain from config or throw if none found
-        const chainFromConfig = config.chains.find(c => c.id === chainId);
-        if (!chainFromConfig) {
-          throw new Error(`Chain with ID ${chainId} not configured`);
-        }
-        return chainFromConfig;
-      } catch (error) {
-        console.error('Error switching chain:', error);
-        throw error;
-      }
-    },
-    getProvider: async () => {
-      if (!isInFrameEnvironment() || !sdk?.wallet?.ethProvider) {
-        console.error('Frame SDK wallet provider not available');
-        // Return a mock provider instead of throwing
-        return mockProvider;
-      }
-      return sdk.wallet.ethProvider;
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: numberToHex(chainId) }],
+      });
+      return chain;
     },
     onAccountsChanged(accounts) {
-      try {
-        if (!accounts?.length) {
-          this.onDisconnect();
-        } else {
-          config.emitter.emit('change', {
-            accounts: accounts.map(x => getAddress(x)),
-          });
-        }
-      } catch (error) {
-        console.error('Error in onAccountsChanged:', error);
-      }
+      if (accounts.length === 0) this.onDisconnect();
+      else
+        config.emitter.emit('change', {
+          accounts: accounts.map((x) => getAddress(x)),
+        });
     },
     onChainChanged(chain) {
-      try {
-        const chainId = Number(chain);
-        config.emitter.emit('change', { chainId });
-      } catch (error) {
-        console.error('Error in onChainChanged:', error);
-      }
+      const chainId = Number(chain);
+      config.emitter.emit('change', { chainId });
     },
-    onDisconnect() {
-      try {
-        config.emitter.emit('disconnect');
-        connected = false;
-      } catch (error) {
-        console.error('Error in onDisconnect:', error);
-      }
-    }
+    async onDisconnect() {
+      config.emitter.emit('disconnect');
+      connected = false;
+    },
+    async getProvider() {
+      return sdk.wallet.ethProvider;
+    },
   }));
 }
 
 /**
- * Convert a number chain ID to hexadecimal format
+ * Create a mock provider for local development
+ * This allows the app to function outside of a Farcaster Frame context
  */
-function chainIdToHex(chainId: number): string {
-  return `0x${chainId.toString(16)}`;
+function createMockProvider() {
+  console.log('Creating mock provider for local development');
+  
+  return {
+    request: async ({ method, params }) => {
+      console.log(`Mock provider request: ${method}`, params);
+      
+      switch (method) {
+        case 'eth_requestAccounts':
+          return [MOCK_ADDRESS]; // Use the constant valid address
+        case 'eth_chainId':
+          return '0x14a33'; // Base Mainnet (84531)
+        case 'wallet_switchEthereumChain':
+          console.log('Mock: Switching chain', params);
+          return null;
+        default:
+          console.log(`Unhandled method in mock provider: ${method}`);
+          return null;
+      }
+    },
+    // Implement required provider interface methods
+    on: (event, listener) => {
+      console.log(`Mock provider: Added listener for ${event}`);
+      return;
+    },
+    removeListener: (event, listener) => {
+      console.log(`Mock provider: Removed listener for ${event}`);
+      return;
+    }
+  };
+}
+
+/**
+ * Add type definition for window.FrameSDK
+ * This is required for TypeScript to recognize the global FrameSDK object
+ */
+declare global {
+  interface Window {
+    FrameSDK?: {
+      wallet: {
+        ethProvider: any;
+      };
+      actions: {
+        ready: () => Promise<void>;
+        openUrl: (url: string) => Promise<void>;
+        close: () => Promise<void>;
+      };
+      context: Promise<{
+        user?: {
+          fid?: number;
+          username?: string;
+          displayName?: string;
+          pfpUrl?: string;
+        };
+        fid?: number;
+        url?: string;
+        verified?: boolean;
+        network?: number;
+        messageHash?: string;
+        timestamp?: number;
+        castId?: {
+          fid: number;
+          hash: string;
+        };
+        buttonIndex?: number;
+        inputText?: string;
+        state?: Record<string, string>;
+      }>;
+    }
+  }
 } 
