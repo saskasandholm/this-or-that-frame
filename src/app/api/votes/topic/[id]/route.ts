@@ -4,17 +4,15 @@ import { prisma } from '@/lib/prisma';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type RouteParams = { params: { id: string } };
-
 /**
  * GET handler - Returns vote counts for a specific topic
  */
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  context: { params: { id: string } }
 ) {
   try {
-    const topicId = parseInt(params.id);
+    const topicId = parseInt(context.params.id);
 
     if (isNaN(topicId)) {
       return NextResponse.json({ error: 'Invalid topic ID' }, { status: 400 });
