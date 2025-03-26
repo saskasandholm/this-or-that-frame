@@ -9,10 +9,11 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const topicId = parseInt(context.params.id);
+    const resolvedParams = await params;
+    const topicId = parseInt(resolvedParams.id);
 
     if (isNaN(topicId)) {
       return NextResponse.json({ error: 'Invalid topic ID' }, { status: 400 });
