@@ -4,12 +4,14 @@ import { prisma } from '@/lib/prisma';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+type RouteParams = { params: { id: string } };
+
 /**
  * GET handler - Returns vote counts for a specific topic
  */
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     const topicId = parseInt(params.id);
